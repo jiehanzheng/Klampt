@@ -308,6 +308,68 @@ class CSpaceInterface(_object):
         """interpolate(CSpaceInterface self, PyObject * a, PyObject * b, double u) -> PyObject *"""
         return _motionplanning.CSpaceInterface_interpolate(self, *args)
 
+    def adaptiveQueriesEnabled(self):
+        """adaptiveQueriesEnabled(CSpaceInterface self) -> bool"""
+        return _motionplanning.CSpaceInterface_adaptiveQueriesEnabled(self)
+
+    def enableAdaptiveQueries(self, *args):
+        """enableAdaptiveQueries(CSpaceInterface self, bool enabled)"""
+        return _motionplanning.CSpaceInterface_enableAdaptiveQueries(self, *args)
+
+    def optimizeQueryOrder(self):
+        """optimizeQueryOrder(CSpaceInterface self)"""
+        return _motionplanning.CSpaceInterface_optimizeQueryOrder(self)
+
+    def setFeasibilityDependency(self, *args):
+        """setFeasibilityDependency(CSpaceInterface self, char const * name, char const * precedingTest)"""
+        return _motionplanning.CSpaceInterface_setFeasibilityDependency(self, *args)
+
+    def setFeasibilityPrior(self, *args):
+        """
+        setFeasibilityPrior(CSpaceInterface self, char const * name, double costPrior=0.0, double feasibilityProbability=0.0, double evidenceStrength=1.0)
+        setFeasibilityPrior(CSpaceInterface self, char const * name, double costPrior=0.0, double feasibilityProbability=0.0)
+        setFeasibilityPrior(CSpaceInterface self, char const * name, double costPrior=0.0)
+        setFeasibilityPrior(CSpaceInterface self, char const * name)
+        """
+        return _motionplanning.CSpaceInterface_setFeasibilityPrior(self, *args)
+
+    def setVisibilityDependency(self, *args):
+        """setVisibilityDependency(CSpaceInterface self, char const * name, char const * precedingTest)"""
+        return _motionplanning.CSpaceInterface_setVisibilityDependency(self, *args)
+
+    def setVisibilityPrior(self, *args):
+        """
+        setVisibilityPrior(CSpaceInterface self, char const * name, double costPrior=0.0, double visibilityProbability=0.0, double evidenceStrength=1.0)
+        setVisibilityPrior(CSpaceInterface self, char const * name, double costPrior=0.0, double visibilityProbability=0.0)
+        setVisibilityPrior(CSpaceInterface self, char const * name, double costPrior=0.0)
+        setVisibilityPrior(CSpaceInterface self, char const * name)
+        """
+        return _motionplanning.CSpaceInterface_setVisibilityPrior(self, *args)
+
+    def feasibilityCost(self, *args):
+        """feasibilityCost(CSpaceInterface self, char const * name) -> double"""
+        return _motionplanning.CSpaceInterface_feasibilityCost(self, *args)
+
+    def feasibilityProbability(self, *args):
+        """feasibilityProbability(CSpaceInterface self, char const * name) -> double"""
+        return _motionplanning.CSpaceInterface_feasibilityProbability(self, *args)
+
+    def visibilityCost(self, *args):
+        """visibilityCost(CSpaceInterface self, char const * name) -> double"""
+        return _motionplanning.CSpaceInterface_visibilityCost(self, *args)
+
+    def visibilityProbability(self, *args):
+        """visibilityProbability(CSpaceInterface self, char const * name) -> double"""
+        return _motionplanning.CSpaceInterface_visibilityProbability(self, *args)
+
+    def feasibilityQueryOrder(self):
+        """feasibilityQueryOrder(CSpaceInterface self) -> PyObject *"""
+        return _motionplanning.CSpaceInterface_feasibilityQueryOrder(self)
+
+    def visibilityQueryOrder(self):
+        """visibilityQueryOrder(CSpaceInterface self) -> PyObject *"""
+        return _motionplanning.CSpaceInterface_visibilityQueryOrder(self)
+
     __swig_setmethods__["index"] = _motionplanning.CSpaceInterface_index_set
     __swig_getmethods__["index"] = _motionplanning.CSpaceInterface_index_get
     if _newclass:index = _swig_property(_motionplanning.CSpaceInterface_index_get, _motionplanning.CSpaceInterface_index_set)
@@ -371,6 +433,13 @@ class PlannerInterface(_object):
     def setEndpoints(self, *args):
         """setEndpoints(PlannerInterface self, PyObject * start, PyObject * goal) -> bool"""
         return _motionplanning.PlannerInterface_setEndpoints(self, *args)
+
+    def setEndpointSet(self, *args):
+        """
+        setEndpointSet(PlannerInterface self, PyObject * start, PyObject * goal, PyObject * goalSample=None) -> bool
+        setEndpointSet(PlannerInterface self, PyObject * start, PyObject * goal) -> bool
+        """
+        return _motionplanning.PlannerInterface_setEndpointSet(self, *args)
 
     def addMilestone(self, *args):
         """addMilestone(PlannerInterface self, PyObject * milestone) -> int"""

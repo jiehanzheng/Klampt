@@ -22,7 +22,7 @@ class RobotCSpace(CSpace):
         self.robot = robot
         self.bound = zip(*robot.getJointLimits())
         self.collider = collider
-        self.addFeasibilityTest(lambda x: self.inJointLimits(x),"joint limits")
+        self.addFeasibilityTest((lambda x: self.inJointLimits(x)),"joint limits")
 
         #TODO explode these into individual self collision / env collision
         #tests
@@ -30,9 +30,13 @@ class RobotCSpace(CSpace):
             self.robot.setConfig(x)
             return True
         if collider:
-            self.addFeasibilityTest(setconfig,"dummy")
-            self.addFeasibilityTest(lambda x : not self.selfCollision(),"self collision")
-            self.addFeasibilityTest(lambda x: not self.envCollision(),"env collision")
+            self.addFeasibilityTest(setconfig,"setconfig")
+            self.addFeasibilityTest((lambda x: not self.selfCollision()),"self collision",dependencies="setconfig")
+            #self.addFeasibilityTest((lambda x: not self.envCollision()),"env collision")
+            for o in xrange(self.collider.world.numRigidObjects()):
+                self.addFeasibilityTest((lambda x: not self.collider.robotObjectCollisions(self.robot.index,o)),"obj collision "+self.collider.world.rigidObject(o).getName(),dependencies="setconfig")
+            for o in xrange(self.collider.world.numTerrains()):
+                self.addFeasibilityTest((lambda x: not self.collider.robotTerrainCollisions(self.robot.index,o)),"terrain collision "+self.collider.world.terrain(o).getName(),dependencies="setconfig")
         self.properties['geodesic'] = 1
         volume = 1
         for b in self.bound:
@@ -59,18 +63,20 @@ class RobotCSpace(CSpace):
                 return False
         return True
 
-    def selfCollision(self):
+    def selfCollision(self,x=None):
         """Checks whether the robot at its current configuration is in
         self collision"""
         #This should be faster than going through the collider... 
+        if x is not None: self.robot.setConfig(x)
         return self.robot.selfCollides()
         #if not self.collider: return False
         #return any(self.collider.robotSelfCollisions(self.robot.index))
 
-    def envCollision(self):
+    def envCollision(self,x=None):
         """Checks whether the robot at its current configuration is in
         collision with the environment."""
         if not self.collider: return False
+        if x is not None: self.robot.setConfig(x)
         for o in xrange(self.collider.world.numRigidObjects()):
             if any(self.collider.robotObjectCollisions(self.robot.index,o)):
                 return True;
@@ -154,7 +160,7 @@ class ClosedLoopRobotCSpace(RobotCSpace):
         self.maxIters = 100
         self.tol = 1e-3
 
-        self.addFeasibilityTest(lambda x: self.closedLoop(),'closed loop constraint')
+        self.addFeasibilityTest((lambda x: self.closedLoop(x)),'closed loop constraint')
 
     def setIKActiveDofs(self,activeSet):
         """Marks that only a subset of the DOFs of the robot are to be used for solving
@@ -163,7 +169,13 @@ class ClosedLoopRobotCSpace(RobotCSpace):
 
     def sample(self):
         """Samples directly on the contact manifold"""
-        self.solver.sampleInitial()
+        self.robot.setConfig(RobotCSpace.sample(self))
+        (res,iters) = self.solver.solve(self.maxIters,self.tol)
+        return self.robot.getConfig()
+
+    def sampleneighborhood(self,c,r):
+        """Samples a neighborhood in ambient space and then projects onto the contact manifold"""
+        self.robot.setConfig(RobotCSpace.sampleneighborhood(self,c,r))
         (res,iters) = self.solver.solve(self.maxIters,self.tol)
         return self.robot.getConfig()
 
@@ -175,9 +187,10 @@ class ClosedLoopRobotCSpace(RobotCSpace):
         if not res: print "IK failed solve"
         return self.robot.getConfig()
 
-    def closedLoop(self,tol=None):
-        """Returns true if the closed loop constraint has been met at the
-        robot's current configuration."""
+    def closedLoop(self,config=None,tol=None):
+        """Returns true if the closed loop constraint has been met at config,
+        or if config==None, the robot's current configuration."""
+        if config is not None: self.robot.setConfig(config)
         e = self.solver.getResidual()
         if tol==None: tol = self.tol
         return max(abs(ei) for ei in e) <= tol
@@ -221,7 +234,7 @@ class ImplicitManifoldRobotCSpace(RobotCSpace):
         self.maxIters = 100
         self.tol = 1e-3
 
-        self.addFeasibilityTest(lambda x: self.onManifold(x),'implicit manifold constraint')
+        self.addFeasibilityTest((lambda x: self.onManifold(x)),'implicit manifold constraint')
 
     def sample(self):
         """Samples directly on the contact manifold"""

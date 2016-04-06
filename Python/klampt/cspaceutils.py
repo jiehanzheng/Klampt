@@ -140,6 +140,7 @@ class EmbeddedCSpace(CSpace):
 
     def project(self,xamb):
         """Ambient space -> embedded space"""
+        print "EmbeddedCSpace.project"
         return [xamb[i] for i in self.mapping]
 
     def lift(self,xemb):

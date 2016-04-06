@@ -155,14 +155,14 @@ class WorldCollider:
             (a,b) = ign
             ageom = self.getGeom(a)
             bgeom = self.getGeom(b)
-            if ageom == None or bgeom == None:
+            if ageom is None or bgeom is None:
                 raise ValueError("Invalid ignore collision item, must be a body in the world")
             self.mask[ageom].discard(bgeom)
             self.mask[bgeom].discard(ageom)
         else:
             #ignore all collisions with the given geometry
             geom = self.getGeom(ign)
-            if geom == None:
+            if geom is None:
                 raise ValueError("Invalid ignore collision item, must be a body in the world")
             for i in self.mask[geom]:
                 #remove it from the list
@@ -192,7 +192,7 @@ class WorldCollider:
         collision detection).  Otherwise, it should be false.
         """
         res = []
-        if filter1 == None: #all pairs
+        if filter1 is None: #all pairs
             if bb_reject: bblist = [g[1].getBB() for g in self.geomList]
             for (i,(g,objs)) in enumerate(zip(self.geomList,self.mask)):
                 for objIndex in objs:
@@ -200,7 +200,7 @@ class WorldCollider:
                     if objIndex < i: continue
                     if bb_reject and not bb_intersect(bblist[i],bblist[objIndex]): continue
                     yield (g,self.geomList[objIndex])
-        elif filter2 == None: #self collision with objects passing filter1
+        elif filter2 is None: #self collision with objects passing filter1
             if bb_reject:
                 #TODO: bounding box rejection, if requested
                 pass
@@ -248,11 +248,8 @@ class WorldCollider:
         robots are tested.  If robots is an index or a RobotModel object
         only collisions for that robot are tested"""
         if isinstance(robot,RobotModel):
-            try:
-                robot = [r for r in xrange(self.world.numRobots()) if self.world.robot(r).getID()==robot.getID()][0]
-            except IndexError:
-                raise RuntimeError("Robot "+robot.getName()+" is not found in the world!")
-        if robot == None:
+            robot = robot.index
+        if robot is None:
             #test all robots
             for r in xrange(len(self.robots)):
                 for c in self.robotSelfCollisions(r):
@@ -272,16 +269,10 @@ class WorldCollider:
         links and the object.  If object is not provided, all objects
         are tested"""
         if isinstance(robot,RobotModel):
-            try:
-                robot = [r for r in xrange(self.world.numRobots()) if self.world.robot(r).getID()==robot.getID()][0]
-            except IndexError:
-                raise RuntimeError("Robot "+robot.getName()+" is not found in the world!")
+            robot = robot.index
         if isinstance(object,RigidObjectModel):
-            try:
-                object = [o for o in xrange(self.world.numRigidObjects()) if self.world.rigidObject(o).getID()==object.getID()][0]
-            except IndexError:
-                raise RuntimeError("RigidObject "+object.getName()+" is not found in the world!")
-        if object == None:
+            object = object.index
+        if object is None:
             #test all objects
             for o in xrange(len(self.rigidObjects)):
                 for c in self.robotObjectCollisions(robot,o):
@@ -301,16 +292,10 @@ class WorldCollider:
         """Given robot and terrain indices, tests all collisions between robot
         links and the terrain"""
         if isinstance(robot,RobotModel):
-            try:
-                robot = [r for r in xrange(self.world.numRobots()) if self.world.robot(r).getID()==robot.getID()][0]
-            except IndexError:
-                raise RuntimeError("Robot "+robot.getName()+" is not found in the world!")
+            robot = robot.index
         if isinstance(terrain,TerrainModel):
-            try:
-                terrain = [t for t in xrange(self.world.numTerrains()) if self.world.terrain(t).getID()==terrain.getID()][0]
-            except IndexError:
-                raise RuntimeError("Terrain "+robot.getName()+" is not found in the world!")
-        if terrain == None:
+            terrain = terrain.index
+        if terrain is None:
             #test all terrains
             for t in xrange(len(self.terrains)):
                 for c in self.robotTerrainCollisions(robot,t):
@@ -328,16 +313,10 @@ class WorldCollider:
 
     def objectTerrainCollisions(self,object,terrain=None):
         if isinstance(object,RigidObjectModel):
-            try:
-                object = [o for o in xrange(self.world.numRigidObjects()) if self.world.rigidObject(o).getID()==object.getID()][0]
-            except IndexError:
-                raise RuntimeError("RigidObject "+object.getName()+" is not found in the world!")
+            object = object.index
         if isinstance(terrain,TerrainModel):
-            try:
-                terrain = [t for t in xrange(self.world.numTerrains()) if self.world.terrain(t).getID()==terrain.getID()][0]
-            except IndexError:
-                raise RuntimeError("Terrain "+robot.getName()+" is not found in the world!")
-        if terrain == None:
+            terrain = terrain.index
+        if terrain is None:
             #test all terrains
             for t in xrange(len(self.terrains)):
                 for c in self.objectTerrainCollisions(object,t):
@@ -354,16 +333,10 @@ class WorldCollider:
 
     def objectObjectCollisions(self,object,object2):
         if isinstance(object,RigidObjectModel):
-            try:
-                object = [o for o in xrange(self.world.numRigidObjects()) if self.world.rigidObject(o).getID()==object.getID()][0]
-            except IndexError:
-                raise RuntimeError("RigidObject "+object.getName()+" is not found in the world!")
+            object = object.index
         if isinstance(object2,RigidObjectModel):
-            try:
-                object2 = [o for o in xrange(self.world.numRigidObjects()) if self.world.rigidObject(o).getID()==object2.getID()][0]
-            except IndexError:
-                raise RuntimeError("RigidObject "+object2.getName()+" is not found in the world!")
-        if object2 == None:
+            object2 = object.index
+        if object2 is None:
             #test all terrains
             for o in xrange(len(self.rigidObjects)):
                 for c in self.objectObjectCollisions(objectot):

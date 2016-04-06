@@ -4,7 +4,11 @@
 #include <KrisLibrary/planning/CSpaceHelpers.h>
 #include "pyerr.h"
 #include <KrisLibrary/graph/IO.h>
+#include <KrisLibrary/graph/DirectedGraph.h>
+#include <KrisLibrary/graph/Callback.h>
+#include <KrisLibrary/structs/FixedSizeHeap.h>
 #include <KrisLibrary/math/random.h>
+#include <KrisLibrary/Timer.h>
 #include <Python.h>
 #include <iostream>
 #include <fstream>
@@ -97,8 +101,13 @@ bool PyListToVector(PyObject* seq,std::vector<double>& x)
     return false;
   
   x.resize(PySequence_Size(seq));
-  for(Py_ssize_t i = 0; i < PySequence_Size(seq); i++) 
-    x[(int)i] = PyFloat_AsDouble(PySequence_GetItem(seq, i));
+  for(Py_ssize_t i = 0; i < PySequence_Size(seq); i++)  {
+    PyObject* v=PySequence_GetItem(seq, i);
+    assert(v != NULL);
+    x[(int)i] = PyFloat_AsDouble(v);
+    Py_XDECREF(v);
+    if(PyErr_Occurred()) return false;
+  }
   return true;
 }
 
@@ -132,9 +141,143 @@ bool PyListToConfig(PyObject* seq,Config& x)
     return false;
   
   x.resize(PySequence_Size(seq));
-  for(Py_ssize_t i = 0; i < PySequence_Size(seq); i++) 
-    x[(int)i] = PyFloat_AsDouble(PySequence_GetItem(seq, i));
+  for(Py_ssize_t i = 0; i < PySequence_Size(seq); i++) {
+    PyObject* v=PySequence_GetItem(seq, i);
+    assert(v != NULL);
+    x[(int)i] = PyFloat_AsDouble(v);
+    Py_XDECREF(v);
+    if(PyErr_Occurred()) return false;
+  }
   return true;
+}
+
+struct TesterStats
+{
+  TesterStats();
+  void reset(double cost,double probability,double count);
+  void update(double testcost,bool testtrue,double strength=1.0);
+
+  double cost;
+  double probability;
+  double count;
+};
+
+TesterStats::TesterStats()
+:cost(0),probability(0),count(0)
+{}
+void TesterStats::reset(double _cost,double _probability,double _count)
+{
+  cost=_cost;
+  probability=_probability;
+  count=_count;
+}
+void TesterStats::update(double testcost,bool testtrue,double strength)
+{
+  double newcount = count+strength;
+  if(newcount == 0) newcount=1;
+  double oldweight = count/newcount;
+  double newweight = 1.0-oldweight;
+  cost = oldweight*cost + newweight*testcost;
+  if(testtrue)
+    probability = oldweight*probability + newweight;
+  else
+    probability = oldweight*probability;
+  count += strength;
+}
+
+void OptimizeTestingOrder(const vector<TesterStats>& stats,vector<vector<int> >& deps,vector<int>& order)
+{
+  vector<pair<double,int> > priority(stats.size());
+  for(size_t i=0;i<stats.size();i++) {
+    priority[i].first = stats[i].cost / (1.0-stats[i].probability);
+    if(IsNaN(priority[i].first)) priority[i].first = 0.0;
+    priority[i].second = (int)i;
+  }
+  if(deps.empty()) {
+    sort(priority.begin(),priority.end());
+    order.resize(stats.size());
+    for(size_t i=0;i<stats.size();i++) 
+      order[i] = priority[i].second;
+  }
+  else {
+    //more complicated version with dependency graph
+    Graph::UndirectedGraph<int,int> G;
+    for(size_t i=0;i<stats.size();i++) 
+      G.AddNode(int(i));
+    for(size_t i=0;i<stats.size();i++) 
+      for(size_t j=0;j<deps[i].size();j++)
+        G.AddEdge(i,deps[i][j]);
+    //compute topological sort
+    Graph::TopologicalSortCallback<int> callback;
+    G.DFS(callback);
+    if(callback.hasCycle) {
+      fprintf(stderr,"motionplanning: WARNING: Test dependency order has cycles... breaking arbitrarily\n");
+    }
+    //revise priorities from bottom up based off of children
+    //a parent node's priority is the minimum of (cost of this + cost of best child) / (1-probability of this*probability of best child)
+    vector<int> bestChild(stats.size(),-1);
+    vector<double> depcosts(stats.size());
+    vector<double> depprobs(stats.size());
+    for(size_t i=0;i<stats.size();i++) {
+      depcosts[i] = stats[i].cost;
+      depprobs[i] = stats[i].probability;
+    }
+    //reverse gives bottom up traversal
+    std::reverse(callback.list.begin(),callback.list.end());
+    for(list<int>::const_iterator i=callback.list.begin();i!=callback.list.end();i++) {
+      if(G.OutDegree(*i) > 0) {
+        //has dependencies...
+        double bestPriority = Inf;
+        int best = -1;
+        Graph::EdgeIterator<int> e;
+        for(G.Begin(*i,e);!e.end();e++) {
+          int j=e.target();
+          if(G.InDegree(j) > 1) //has more than one dependency
+            fprintf(stderr,"motionplanning: WARNING: Constraint has multiple dependencies, can't really optimize yet\n");
+          double priority = (depcosts[*i]+depcosts[j])/(1.0-depprobs[*i]*depprobs[j]);
+          if(priority < bestPriority || best < 0) {
+            best = j;
+            bestPriority = priority;
+          }
+        }
+        depcosts[*i] = depcosts[*i] + depcosts[best];
+        depprobs[*i] = depprobs[*i] * depprobs[best];
+        priority[*i].first = bestPriority;
+      }
+    }
+    //now search the graph from top down, extracting the lowest priority items from fringe
+    order.resize(0);
+    order.reserve(stats.size());
+    FixedSizeHeap<double> queue(stats.size());
+    vector<bool> visited(stats.size(),false);
+    for(size_t i=0;i<stats.size();i++)
+      if(G.InDegree(i) == 0) queue.push(int(i),priority[i].first);
+    while(true) {
+      int i;
+      if(!queue.empty()) {
+        i=queue.top();
+        queue.pop();
+      }
+      else {
+        //should only get here with cycles... break them in arbitrary order
+        i = -1;
+        for(size_t j=0;j<visited.size();j++)
+          if(!visited[j]) {
+            i=(int)j;
+            break;
+          }
+        if(i < 0) break; //done
+      }
+      visited[i] = true;
+      order.push_back(i);
+      //go through constraints dependent on i and put them on the queue
+      Graph::EdgeIterator<int> e;
+      for(G.Begin(i,e);!e.end();e++) {
+        int j=e.target();
+        queue.push(j,priority[j].first);
+      }
+    }
+  }
 }
 
 class PyCSpace;
@@ -146,7 +289,7 @@ class PyCSpace : public ExplicitCSpace
 public:
   PyCSpace()
     :sample(NULL),sampleNeighborhood(NULL),
-     distance(NULL),interpolate(NULL),edgeResolution(0.001)
+     distance(NULL),interpolate(NULL),edgeResolution(0.001),adaptive(false),cacheq(NULL),cacheq2(NULL),cachex(NULL),cachex2(NULL)
   {}
 
   virtual ~PyCSpace() {
@@ -158,6 +301,23 @@ public:
       Py_XDECREF(visibleTests[i]);
     Py_XDECREF(distance);
     Py_XDECREF(interpolate);
+    Py_XDECREF(cachex);
+    Py_XDECREF(cachex2);
+  }
+
+  PyObject* UpdateTempConfig(const Config& q) {
+    if(&q == cacheq) return cachex;
+    Py_XDECREF(cachex);
+    cacheq = &q;
+    cachex = PyListFromConfig(q);
+    return cachex;
+  }
+  PyObject* UpdateTempConfig2(const Config& q) {
+    if(&q == cacheq2) return cachex2;
+    Py_XDECREF(cachex2);
+    cacheq2 = &q;
+    cachex2 = PyListFromConfig(q);
+    return cachex2;
   }
 
   void operator = (const PyCSpace& rhs)
@@ -166,6 +326,12 @@ public:
     sampleNeighborhood = rhs.sampleNeighborhood;
     feasibleTests = rhs.feasibleTests;
     visibleTests = rhs.visibleTests;
+    feasibleStats = rhs.feasibleStats;
+    visibleStats = rhs.visibleStats;
+    feasibleTestOrder = rhs.feasibleTestOrder;
+    visibleTestOrder = rhs.visibleTestOrder;
+    feasibleTestDeps = rhs.feasibleTestDeps;
+    visibleTestDeps = rhs.visibleTestDeps;
     constraintNames = rhs.constraintNames;
     constraintMap = rhs.constraintMap;
     distance = rhs.distance;
@@ -208,11 +374,10 @@ public:
       CSpace::SampleNeighborhood(c,r,x);
     }
     else {
-      PyObject* pyc=PyListFromConfig(c);
+      PyObject* pyc=UpdateTempConfig(c);
       PyObject* pyr=PyFloat_FromDouble(r);
       PyObject* result = PyObject_CallFunctionObjArgs(sampleNeighborhood,pyc,pyr,NULL);
       if(!result) {
-	Py_DECREF(pyc);
 	Py_DECREF(pyr);
 	if(!PyErr_Occurred()) {
 	  throw PyException("Python sampleneighborhood method failed");
@@ -223,12 +388,10 @@ public:
       }
       bool res=PyListToConfig(result,x);
       if(!res) {
-	Py_DECREF(pyc);
 	Py_DECREF(pyr);
 	Py_DECREF(result);
 	throw PyException("Python sampleNeighborhood method did not return a list");
       }
-      Py_DECREF(pyc);
       Py_DECREF(pyr);
       Py_DECREF(result);
     }
@@ -249,9 +412,9 @@ public:
       throw PyException(ss.str().c_str());
     }
 
-    PyObject* pyx = PyListFromConfig(x);
+    if(adaptive) timer.Reset();
+    PyObject* pyx = UpdateTempConfig(x);
     PyObject* result = PyObject_CallFunctionObjArgs(feasibleTests[obstacle],pyx,NULL);
-    Py_DECREF(pyx);
     if(result == NULL) {
       if(!PyErr_Occurred()) {
 	throw PyException("An error occurred when calling feasible");
@@ -265,8 +428,10 @@ public:
       throw PyException("Python feasible test method didn't return bool");
     }
     bool res=(result == Py_True);
+    Py_DECREF(result);
+    if(adaptive)
+      feasibleStats[obstacle].update(timer.ElapsedTime(),res);
     if(!res) {
-      Py_DECREF(result);
       return false;
     }
     return true;
@@ -277,18 +442,18 @@ public:
     if(feasibleTests.empty()) {
       throw PyException("Python feasible method not defined");
     }
-    PyObject* pyx = PyListFromConfig(x);
+    PyObject* pyx = UpdateTempConfig(x);
     for(size_t i=0;i<feasibleTests.size();i++) {
-      if(feasibleTests[i] == NULL) {
+      int obstacle = (feasibleTestOrder.empty() ? (int)i : feasibleTestOrder[i]);
+      if(feasibleTests[obstacle] == NULL) {
 	stringstream ss;
-	ss<<"Python feasible test for constraint "<<constraintNames[i]<<"not defined"<<endl;
-	Py_DECREF(pyx);
+	ss<<"Python feasible test for constraint "<<constraintNames[obstacle]<<"not defined"<<endl;
 	throw PyException(ss.str().c_str());
       }
 
-      PyObject* result = PyObject_CallFunctionObjArgs(feasibleTests[i],pyx,NULL);
+      if(adaptive) timer.Reset();
+      PyObject* result = PyObject_CallFunctionObjArgs(feasibleTests[obstacle],pyx,NULL);
       if(result == NULL) {
-	Py_DECREF(pyx);
 	if(!PyErr_Occurred()) {
 	  throw PyException("An error occurred when calling feasible");
 	}
@@ -297,18 +462,17 @@ public:
 	}
       }
       if(!PyBool_Check(result)) {
-	Py_DECREF(pyx);
 	Py_DECREF(result);
 	throw PyException("Python feasible test method didn't return bool");
       }
       bool res=(result == Py_True);
+      Py_DECREF(result);
+      if(adaptive) 
+        feasibleStats[obstacle].update(timer.ElapsedTime(),res);
       if(!res) {
-	Py_DECREF(pyx);
-	Py_DECREF(result);
 	return false;
       }
     }
-    Py_DECREF(pyx);
     return true;
   }
 
@@ -337,9 +501,15 @@ public:
     }
     else {
       PyObject* args = PyTuple_New(2);
-      PyTuple_SetItem(args, 0, PyListFromConfig(x));
-      PyTuple_SetItem(args, 1, PyListFromConfig(y));
+      PyObject* pyx = UpdateTempConfig(x);
+      PyObject* pyy = UpdateTempConfig(y);
+      Py_INCREF(pyx);
+      Py_INCREF(pyy);
+      PyTuple_SetItem(args, 0, pyx);
+      PyTuple_SetItem(args, 1, pyy);
       PyObject* result = PyObject_CallObject(distance,args);
+      Py_DECREF(pyx);
+      Py_DECREF(pyy);
       if(!result) {
 	Py_DECREF(args);
 	if(!PyErr_Occurred()) {
@@ -367,10 +537,16 @@ public:
     }
     else {
       PyObject* args = PyTuple_New(3);
-      PyTuple_SetItem(args, 0, PyListFromConfig(x));
-      PyTuple_SetItem(args, 1, PyListFromConfig(y));
+      PyObject* pyx = UpdateTempConfig(x);
+      PyObject* pyy = UpdateTempConfig(y);
+      Py_INCREF(pyx);
+      Py_INCREF(pyy);
+      PyTuple_SetItem(args, 0, pyx);
+      PyTuple_SetItem(args, 1, pyy);
       PyTuple_SetItem(args, 2, PyFloat_FromDouble(u));
       PyObject* result = PyObject_CallObject(interpolate,args);
+      Py_DECREF(pyx);
+      Py_DECREF(pyy);
       if(!result) {
 	Py_DECREF(args);
 	if(!PyErr_Occurred()) {
@@ -402,6 +578,35 @@ public:
     }
   }
 
+  bool AddFeasibleDependency(const char* name,const char* dependency)
+  {
+    if(constraintMap.count(name)==0 || constraintMap.count(dependency)==0) return false;
+    if(feasibleTestDeps.empty())
+      feasibleTestDeps.resize(feasibleTests.size());
+    int cindex = constraintMap[name];
+    int dindex = constraintMap[dependency]; 
+    feasibleTestDeps[cindex].push_back(dindex);
+    return true;
+  }
+
+  bool AddVisibleDependency(const char* name,const char* dependency)
+  {
+    if(constraintMap.count(name)==0 || constraintMap.count(dependency)==0) return false;
+    if(visibleTestDeps.empty())
+      visibleTestDeps.resize(visibleTests.size());
+    int cindex = constraintMap[name];
+    int dindex = constraintMap[dependency]; 
+    visibleTestDeps[cindex].push_back(dindex);
+    return true;
+  }
+
+
+  void OptimizeQueryOrder() {
+    if(!adaptive) return;
+    OptimizeTestingOrder(feasibleStats,feasibleTestDeps,feasibleTestOrder);
+    OptimizeTestingOrder(visibleStats,visibleTestDeps,visibleTestOrder);
+  }
+
   PyObject *sample,
     *sampleNeighborhood,
     *distance,
@@ -412,7 +617,18 @@ public:
   map<string,int> constraintMap;
   double edgeResolution;
   PropertyMap properties;
+
+  bool adaptive;
+  vector<TesterStats> feasibleStats,visibleStats;
+  vector<vector<int> > feasibleTestDeps,visibleTestDeps;
+  vector<int> feasibleTestOrder,visibleTestOrder;
+  Timer timer;
+
+  const Config *cacheq,*cacheq2;
+  PyObject *cachex,*cachex2;
 };
+
+
 
 class PyEdgePlanner : public EdgePlanner
 {
@@ -429,68 +645,94 @@ public:
   virtual bool IsVisible() {
     assert(space->visibleTests.size() == space->feasibleTests.size());
     PyObject* args = PyTuple_New(2);
-    PyTuple_SetItem(args, 0, PyListFromConfig(a));
-    PyTuple_SetItem(args, 1, PyListFromConfig(b));
+    PyObject* pya = space->UpdateTempConfig(a);
+    PyObject* pyb = space->UpdateTempConfig2(b);
+    Py_INCREF(pya);
+    Py_INCREF(pyb);
+    PyTuple_SetItem(args, 0, pya);
+    PyTuple_SetItem(args, 1, pya);
     if(obstacle < 0) { //test all obstacles
       for(size_t i=0;i<space->visibleTests.size();i++) {
-	if(space->visibleTests[i] == NULL) {
-	  stringstream ss;
-	  ss<<"Python visible test for constraint "<<space->constraintNames[i]<<"not defined"<<endl;
-	  Py_DECREF(args);
-	  throw PyException(ss.str().c_str());
-	}
-	
-	PyObject* result = PyObject_CallObject(space->visibleTests[i],args);
-	if(!result) {
-	  Py_DECREF(args);
-	  if(!PyErr_Occurred()) {
-	    throw PyException("Python visible method failed");
-	  }
-	  else {
-	    throw PyPyErrorException();
-	  }
-	}
-	if(!PyBool_Check(result) && !PyInt_Check(result)) {
-	  Py_DECREF(args);
-	  Py_DECREF(result);
-	  throw PyException("Python visible test didn't return bool");
-	}
-	int res=PyObject_IsTrue(result);
-	Py_DECREF(result);
-	if(res != 1) {
-	  Py_DECREF(args);
-	  return false;
-	}
+        int obs = (space->visibleTestOrder.empty() ? (int)i : space->visibleTestOrder[i]);
+        if(space->visibleTests[obs] == NULL) {
+          stringstream ss;
+          ss<<"Python visible test for constraint "<<space->constraintNames[obs]<<"not defined"<<endl;
+          Py_DECREF(args);
+          throw PyException(ss.str().c_str());
+        }
+
+        if(space->adaptive) space->timer.Reset();	
+        PyObject* result = PyObject_CallObject(space->visibleTests[obs],args);
+        if(!result) {
+          Py_DECREF(pya);
+          Py_DECREF(pyb);
+          Py_DECREF(args);
+          if(!PyErr_Occurred()) {
+            throw PyException("Python visible method failed");
+          }
+          else {
+            throw PyPyErrorException();
+          }
+        }
+        if(!PyBool_Check(result) && !PyInt_Check(result)) {
+          Py_DECREF(pya);
+          Py_DECREF(pyb);
+          Py_DECREF(args);
+          Py_DECREF(result);
+          throw PyException("Python visible test didn't return bool");
+        }
+        int res=PyObject_IsTrue(result);
+        Py_DECREF(result);
+        if(space->adaptive) 
+          space->visibleStats[obs].update(space->timer.ElapsedTime(),res); 
+        if(res != 1) {
+          Py_DECREF(pya);
+          Py_DECREF(pyb);
+          Py_DECREF(args);
+          Py_DECREF(args);
+          return false;
+        }
       }
+      Py_DECREF(pya);
+      Py_DECREF(pyb);
+      Py_DECREF(args);
       Py_DECREF(args);    
     }
     else {
       //call visibility test for one obstacle
       if(space->visibleTests[obstacle] == NULL) {
-	stringstream ss;
-	ss<<"Python visible test for constraint "<<space->constraintNames[obstacle]<<"not defined"<<endl;
-	Py_DECREF(args);
-	throw PyException(ss.str().c_str());
+        stringstream ss;
+        ss<<"Python visible test for constraint "<<space->constraintNames[obstacle]<<"not defined"<<endl;
+        Py_DECREF(pya);
+        Py_DECREF(pyb);
+        Py_DECREF(args);
+        throw PyException(ss.str().c_str());
       }
-	
+
+      if(space->adaptive) space->timer.Reset(); 	
       PyObject* result = PyObject_CallObject(space->visibleTests[obstacle],args);
+      Py_DECREF(pya);
+      Py_DECREF(pyb);
       Py_DECREF(args);
       if(!result) {
-	if(!PyErr_Occurred()) {
-	  throw PyException("Python visible method failed");
-	}
-	else {
-	  throw PyPyErrorException();
-	}
+        if(!PyErr_Occurred()) {
+          throw PyException("Python visible method failed");
+        }
+        else {
+          throw PyPyErrorException();
+        }
       }
       if(!PyBool_Check(result) && !PyInt_Check(result)) {
-	Py_DECREF(result);
-	throw PyException("Python visible test didn't return bool");
+        Py_DECREF(result);
+        throw PyException("Python visible test didn't return bool");
       }
       int res=PyObject_IsTrue(result);
       Py_DECREF(result);
+      if(space->adaptive) 
+        space->visibleStats[obstacle].update(space->timer.ElapsedTime(),res); 
+
       if(res != 1) {
-	return false;
+        return false;
       }
     }
     return true;
@@ -561,9 +803,9 @@ public:
     else PiggybackCSpace::Sample(x);
   }
   virtual bool IsFeasible(const Config& q) {
-    //TODO: return goal test
     PyObject* pyq = ToPy(q);
-    PyObject* result = PyObject_CallFunctionObjArgs(goalTest,pyq);
+    PyObject* result = PyObject_CallFunctionObjArgs(goalTest,pyq,NULL);
+    Py_DECREF(pyq);
     if(result == NULL) {
       if(!PyErr_Occurred()) {
 	throw PyException("Error calling goal sampler provided to setEndpoints, must accept 1 argument");
@@ -646,11 +888,14 @@ void CSpaceInterface::setFeasibility(PyObject* pyFeas)
     Py_XDECREF(spaces[index]->feasibleTests[i]);
   Py_XINCREF(pyFeas);
   spaces[index]->feasibleTests.resize(1);
+  spaces[index]->feasibleStats.resize(1);
   spaces[index]->constraintNames.resize(1);
   spaces[index]->constraintNames[0] = "feasible";
   spaces[index]->constraintMap.clear();
   spaces[index]->constraintMap["feasible"]=0;
   spaces[index]->feasibleTests[0] = pyFeas;
+  spaces[index]->feasibleStats[0].reset(0,0,0);
+  spaces[index]->feasibleTestOrder.resize(0);
 }
 
 
@@ -662,16 +907,23 @@ void CSpaceInterface::addFeasibilityTest(const char* name,PyObject* pyFeas)
   if(spaces[index]->constraintMap.count(name) > 0)
     cindex = spaces[index]->constraintMap[name];
   spaces[index]->feasibleTests.resize(spaces[index]->constraintNames.size(),NULL);
+  spaces[index]->feasibleStats.resize(spaces[index]->constraintNames.size());
   if(cindex < 0) {
+    cindex = spaces[index]->feasibleTests.size();
     Py_XINCREF(pyFeas);
     spaces[index]->feasibleTests.push_back(pyFeas);
     spaces[index]->constraintNames.push_back(name);
+    spaces[index]->feasibleStats.push_back(TesterStats());
+    spaces[index]->constraintMap[name] = cindex;
   }
   else {
     Py_DECREF(spaces[index]->feasibleTests[cindex]);
     Py_XINCREF(pyFeas);
     spaces[index]->feasibleTests[cindex] = pyFeas;
+    spaces[index]->feasibleStats[cindex].reset(0,0,0);
   }
+  if(!spaces[index]->feasibleTestOrder.empty())
+    spaces[index]->feasibleTestOrder.back() = cindex;
 }
 
 void CSpaceInterface::setVisibility(PyObject* pyVisible)
@@ -682,7 +934,10 @@ void CSpaceInterface::setVisibility(PyObject* pyVisible)
     Py_XDECREF(spaces[index]->visibleTests[i]);
   Py_XINCREF(pyVisible);
   spaces[index]->visibleTests.resize(1);
+  spaces[index]->visibleStats.resize(1);
   spaces[index]->visibleTests[0] = pyVisible;
+  spaces[index]->visibleStats[0].reset(0,0,0);
+  spaces[index]->visibleTestOrder.resize(0);
 }
 
 void CSpaceInterface::addVisibilityTest(const char* name,PyObject* pyVis)
@@ -693,15 +948,20 @@ void CSpaceInterface::addVisibilityTest(const char* name,PyObject* pyVis)
   if(spaces[index]->constraintMap.count(name) > 0)
     cindex = spaces[index]->constraintMap[name];
   spaces[index]->visibleTests.resize(spaces[index]->constraintNames.size(),NULL);
+  spaces[index]->visibleStats.resize(spaces[index]->constraintNames.size());
   if(cindex < 0) {
+    cindex = (int)spaces[index]->visibleTests.size();
     Py_XINCREF(pyVis);
     spaces[index]->visibleTests.push_back(pyVis);
+    spaces[index]->visibleStats.push_back(TesterStats());
     spaces[index]->constraintNames.push_back(name);
+    spaces[index]->constraintMap[name] = cindex;
   }
   else {
     Py_DECREF(spaces[index]->visibleTests[cindex]);
     Py_XINCREF(pyVis);
     spaces[index]->visibleTests[cindex] = pyVis;
+    spaces[index]->visibleStats[cindex].reset(0,0,1);
   }
 }
 
@@ -714,6 +974,8 @@ void CSpaceInterface::setVisibilityEpsilon(double eps)
   for(size_t i=0;i<spaces[index]->visibleTests.size();i++)
     Py_XDECREF(spaces[index]->visibleTests[i]);
   spaces[index]->visibleTests.resize(0);
+  spaces[index]->visibleStats.resize(0);
+  spaces[index]->visibleTestOrder.resize(0);
   spaces[index]->edgeResolution = eps;
 }
 
@@ -804,13 +1066,13 @@ bool CSpaceInterface::testFeasibility(const char* name,PyObject* q)
   if(!PyListToConfig(q,vq)) {
     throw PyException("Invalid configuration (must be list)");
   }
-  int index = -1;
+  int cindex = -1;
   if(spaces[index]->constraintMap.count(name)==0)
      throw PyException("Invalid constraint name");
-  index = spaces[index]->constraintMap[name];
-  return spaces[index]->IsFeasible(vq,index);
-
+  cindex = spaces[index]->constraintMap[name];
+  return spaces[index]->IsFeasible(vq,cindex);
 }
+
 bool CSpaceInterface::testVisibility(const char* name,PyObject* a,PyObject* b)
 {
   if(index < 0 || index >= (int)spaces.size() || spaces[index]==NULL) 
@@ -822,11 +1084,11 @@ bool CSpaceInterface::testVisibility(const char* name,PyObject* a,PyObject* b)
   if(!PyListToConfig(b,vb)) {
     throw PyException("Invalid configuration b (must be list)");
   }
-  int index = -1;
+  int cindex = -1;
   if(spaces[index]->constraintMap.count(name)==0)
      throw PyException("Invalid constraint name");
   index = spaces[index]->constraintMap[name];
-  return spaces[index]->IsVisible(va,vb,index);
+  return spaces[index]->IsVisible(va,vb,cindex);
 }
 
 PyObject* CSpaceInterface::feasibilityFailures(PyObject* q)
@@ -898,6 +1160,134 @@ PyObject* CSpaceInterface::interpolate(PyObject* a,PyObject* b,double u)
   spaces[index]->Interpolate(va,vb,u,vout);
   return PyListFromConfig(vout);
 }
+
+bool CSpaceInterface::adaptiveQueriesEnabled()
+{
+  return false;
+}
+void CSpaceInterface::enableAdaptiveQueries(bool enabled)
+{
+  if(index < 0 || index >= (int)spaces.size() || spaces[index]==NULL) 
+    throw PyException("Invalid cspace index");
+  spaces[index]->adaptive = enabled;
+}
+
+void CSpaceInterface::optimizeQueryOrder()
+{
+  if(index < 0 || index >= (int)spaces.size() || spaces[index]==NULL) 
+    throw PyException("Invalid cspace index");
+  spaces[index]->OptimizeQueryOrder();
+}
+
+void CSpaceInterface::setFeasibilityDependency(const char* name,const char* precedingTest)
+{
+  if(index < 0 || index >= (int)spaces.size() || spaces[index]==NULL) 
+    throw PyException("Invalid cspace index");
+  if(!spaces[index]->AddFeasibleDependency(name,precedingTest))
+    throw PyException("Invalid dependency");
+}
+
+void CSpaceInterface::setFeasibilityPrior(const char* name,double costPrior,double feasibilityProbability,double evidenceStrength)
+{
+  if(index < 0 || index >= (int)spaces.size() || spaces[index]==NULL) 
+    throw PyException("Invalid cspace index");
+  int cindex = -1;
+  if(spaces[index]->constraintMap.count(name)==0)
+     throw PyException("Invalid constraint name");
+  cindex = spaces[index]->constraintMap[name];
+  spaces[index]->feasibleStats[cindex].reset(costPrior,feasibilityProbability,evidenceStrength);
+}
+
+void CSpaceInterface::setVisibilityDependency(const char* name,const char* precedingTest)
+{
+  if(index < 0 || index >= (int)spaces.size() || spaces[index]==NULL) 
+    throw PyException("Invalid cspace index");
+  if(!spaces[index]->AddVisibleDependency(name,precedingTest))
+    throw PyException("Invalid dependency");
+}
+
+void CSpaceInterface::setVisibilityPrior(const char* name,double costPrior,double visibilityProbability,double evidenceStrength)
+{
+  if(index < 0 || index >= (int)spaces.size() || spaces[index]==NULL) 
+    throw PyException("Invalid cspace index");
+  int cindex = -1;
+  if(spaces[index]->constraintMap.count(name)==0)
+     throw PyException("Invalid constraint name");
+  cindex = spaces[index]->constraintMap[name];
+  spaces[index]->visibleStats[cindex].reset(costPrior,visibilityProbability,evidenceStrength);
+}
+
+double CSpaceInterface::feasibilityCost(const char* name)
+{
+  if(index < 0 || index >= (int)spaces.size() || spaces[index]==NULL) 
+    throw PyException("Invalid cspace index");
+  int cindex = -1;
+  if(spaces[index]->constraintMap.count(name)==0)
+     throw PyException("Invalid constraint name");
+  cindex = spaces[index]->constraintMap[name];
+  return spaces[index]->feasibleStats[cindex].cost;
+}
+
+double CSpaceInterface::feasibilityProbability(const char* name)
+{
+  if(index < 0 || index >= (int)spaces.size() || spaces[index]==NULL) 
+    throw PyException("Invalid cspace index");
+  int cindex = -1;
+  if(spaces[index]->constraintMap.count(name)==0)
+     throw PyException("Invalid constraint name");
+  cindex = spaces[index]->constraintMap[name];
+  return spaces[index]->feasibleStats[cindex].probability;
+}
+
+double CSpaceInterface::visibilityCost(const char* name)
+{
+  if(index < 0 || index >= (int)spaces.size() || spaces[index]==NULL) 
+    throw PyException("Invalid cspace index");
+  int cindex = -1;
+  if(spaces[index]->constraintMap.count(name)==0)
+     throw PyException("Invalid constraint name");
+  cindex = spaces[index]->constraintMap[name];
+  return spaces[index]->visibleStats[cindex].cost;
+}
+
+double CSpaceInterface::visibilityProbability(const char* name)
+{
+  if(index < 0 || index >= (int)spaces.size() || spaces[index]==NULL) 
+    throw PyException("Invalid cspace index");
+  int cindex = -1;
+  if(spaces[index]->constraintMap.count(name)==0)
+     throw PyException("Invalid constraint name");
+  cindex = spaces[index]->constraintMap[name];
+  return spaces[index]->visibleStats[cindex].probability;
+}
+
+PyObject* CSpaceInterface::feasibilityQueryOrder()
+{
+  if(index < 0 || index >= (int)spaces.size() || spaces[index]==NULL) 
+    throw PyException("Invalid cspace index");
+  PyObject* res = PyList_New(spaces[index]->feasibleTests.size());
+  for(size_t i=0;i<spaces[index]->constraintNames.size();i++) {
+    int cindex = (spaces[index]->feasibleTestOrder.empty() ? (int)i : spaces[index]->feasibleTestOrder[i]);
+    PyObject* s = PyString_FromString(spaces[index]->constraintNames[cindex].c_str());
+    PyList_SetItem(res,i,s);
+  }
+  return res;
+}
+
+PyObject* CSpaceInterface::visibilityQueryOrder()
+{
+  if(index < 0 || index >= (int)spaces.size() || spaces[index]==NULL) 
+    throw PyException("Invalid cspace index");
+  PyObject* res = PyList_New(spaces[index]->visibleTests.size());
+  for(size_t i=0;i<spaces[index]->constraintNames.size();i++) {
+    int cindex = (spaces[index]->visibleTestOrder.empty() ? (int)i : spaces[index]->visibleTestOrder[i]);
+    PyObject* s = PyString_FromString(spaces[index]->constraintNames[cindex].c_str());
+    PyList_SetItem(res,i,s);
+  }
+  return res;
+}
+
+
 
 void setPlanJSONString(const char* string)
 {
@@ -1022,26 +1412,35 @@ bool PlannerInterface::setEndpoints(PyObject* start,PyObject* goal)
   }
 
   res=PyListToConfig(goal,qgoal);
-  if(res) {
-    if(!spaces[spaceIndex]->IsFeasible(qgoal)) {
-      throw PyException("Goal configuration is infeasible");
-    }
-    int igoal=plans[index]->AddMilestone(qgoal);
-    if(igoal < 0) {
-      throw PyException("Goal configuration is infeasible");
-    }
+  if(!res) 
+    throw PyException("Invalid start endpoint");
+  if(!spaces[spaceIndex]->IsFeasible(qgoal)) {
+    throw PyException("Goal configuration is infeasible");
   }
-  else {
-    //test if it's a goal test
-    if(PyCallable_Check(goal)) {
-      goalSets.resize(plans.size());
-      goalSets[index] = new PyGoalSet(spaces[spaceIndex],goal);
-      plans[index]=factory.Create(spaces[spaceIndex],qstart,goalSets[index]);
-    }
-    else {
-      throw PyException("Invalid goal endpoint");
-    }
+  int igoal=plans[index]->AddMilestone(qgoal);
+  if(igoal < 0) {
+    throw PyException("Goal configuration is infeasible");
   }
+  return true;
+}
+bool PlannerInterface::setEndpointSet(PyObject* start,PyObject* goal,PyObject* goalSample)
+{
+  if(index < 0 || index >= (int)plans.size() || plans[index]==NULL) 
+    throw PyException("Invalid plan index");
+  Config qstart;
+  bool res=PyListToConfig(start,qstart);
+  if(!res) 
+    throw PyException("Invalid start endpoint");
+  if(!spaces[spaceIndex]->IsFeasible(qstart)) {
+    throw PyException("Start configuration is infeasible");
+  }
+  //test if it's a goal test
+  if(!PyCallable_Check(goal)) {
+    throw PyException("Goal test is not callable");
+  }
+  goalSets.resize(plans.size());
+  goalSets[index] = new PyGoalSet(spaces[spaceIndex],goal,goalSample);
+  plans[index]=factory.Create(spaces[spaceIndex],qstart,goalSets[index]);
   return true;
 }
 
@@ -1074,6 +1473,7 @@ void PlannerInterface::planMore(int iterations)
 {
   if(index < 0 || index >= (int)plans.size() || plans[index]==NULL) 
     throw PyException("Invalid plan index");
+  spaces[spaceIndex]->OptimizeQueryOrder();
   plans[index]->PlanMore(iterations);
   //printf("Plan now has %d milestones, %d components\n",plans[plan]->NumMilestones(),plans[plan]->NumComponents());
   //DumpPlan(plans[plan],"plan.tgf");

@@ -13,7 +13,8 @@ import sys
 DO_SIMPLIFY = 0
 DEBUG_SIMPLIFY = 0
 MANUAL_SPACE_CREATION = 0
-CLOSED_LOOP_TEST = 1
+CLOSED_LOOP_TEST = 0
+PLAN_TO_GOAL_TEST = 1
 MANUAL_PLAN_CREATION = 0
 
 #load the robot / world file
@@ -123,7 +124,15 @@ for i in range(len(configs)-1):
     if MANUAL_PLAN_CREATION:
         #Manual construction of planner
         plan = cspace.MotionPlan(space, **settings)
-        plan.setEndpoints(configs[0],configs[1])
+        plan.setEndpoints(configs[i],configs[i+1])
+    elif PLAN_TO_GOAL_TEST:
+        #this code uses the robotplanning module's convenience functions to reach the cartesian goal of
+        #the specified configuration
+        robot.setConfig(configs[i+1])
+        obj = ik.fixed_objective(robot.link(robot.numLinks()-1),local=[0,0,0])
+        #start from end of previous path
+        robot.setConfig(wholepath[-1])
+        plan = robotplanning.planToCartesianObjective(world,robot,obj,movingSubset='all',**settings)
     else:
         #this code uses the robotplanning module's convenience functions
         robot.setConfig(configs[i])
@@ -132,6 +141,7 @@ for i in range(len(configs)-1):
                                           **settings)
     if plan is None:
         break
+    plan.space.cspace.enableAdaptiveQueries(True)
     print "Planning..."
     plan.planMore(500)
     #this code just gives some debugging information. it may get expensive
@@ -147,6 +157,10 @@ for i in range(len(configs)-1):
         #the path is currently a set of milestones: discretize it so that it stays near the contact surface
         path = space.discretizePath(path)
     wholepath += path[1:]
+
+    print plan.space.cspace.feasibilityQueryOrder()
+    plan.space.cspace.optimizeQueryOrder()
+    print plan.space.cspace.feasibilityQueryOrder()
 
     #to be nice to the C++ module, do this to free up memory
     plan.space.close()

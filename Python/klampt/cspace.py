@@ -74,16 +74,17 @@ class CSpace:
         self.cspace = None
         self.feasibilityTests = None
         self.feasibilityTestNames = None
+        self.feasibilityTestDependencies = None
         self.eps = 1e-3
         self.bound = [(0,1)]
         self.properties = {}
 
-    def setBounds(self,bounds):
+    def setBounds(self,bound):
         """Convenience function: sets the sampling bound and the
         space properties in one line."""
-        self.bounds = bounds
-        self.properties["minimum"] = [b[0] for b in bounds]
-        self.properties["maximum"] = [b[1] for b in bounds]
+        self.bound = bound
+        self.properties["minimum"] = [b[0] for b in bound]
+        self.properties["maximum"] = [b[1] for b in bound]
 
     def close(self):
         """This method must be called to free the memory associated with the
@@ -107,6 +108,8 @@ class CSpace:
         if self.feasibilityTests is not None:
             for n,f in zip(self.feasibilityTestNames,self.feasibilityTests):
                 self.cspace.addFeasibilityTest(n,f)
+            for (n,d) in self.feasibilityTestDependencies:
+                self.cspace.setFeasibilityDependency(n,d)
         else:
             if hasattr(self,'feasible'):
                 self.cspace.setFeasibility(getattr(self,'feasible'))
@@ -147,16 +150,27 @@ class CSpace:
         """
         return [random.uniform(max(b[0],ci-r),min(b[1],ci+r)) for ci,b in zip(c,self.bound)]
 
-    def addFeasibilityTest(self,func,name=None):
+    def addFeasibilityTest(self,func,name=None,dependencies=None):
         """Adds a new feasibility test with the given function func(x) and the specified name.
-        If name is not provided (default) a default name is generated."""
+        If name is not provided (default) a default name is generated.
+
+        If dependencies is provided, it can be a string or a list of strings, 
+        indicating that this test must be called after some other test(s).
+        """
         if self.feasibilityTests is None:
             self.feasibilityTests = []
             self.feasibilityTestNames = []
+            self.feasibilityTestDependencies = []
         self.feasibilityTests.append(func)
         if name is None:
             name = "test_"+str(len(self.feasibilityTests)-1)
         self.feasibilityTestNames.append(name)
+        if dependency is not None:
+            if isinstance(dependencies,(list,tuple)):
+                for d in dependencies:
+                    self.feasibilityTestDependencies.append(name,d)
+            else:
+                self.feasibilityTestDependencies.append(name,dependencies)
 
     def inBounds(self,x):
         """Returns true if x is within the given bounds"""
@@ -268,8 +282,15 @@ class MotionPlan:
         """Sets the start and goal configuration.  goal can also be a
         *goal test*, which is a function taking one argument f(q) that
         returns true if the configuration is at the goal and false
-        otherwise."""
-        self.planner.setEndpoints(start,goal)
+        otherwise.  Another representation of a goal test is a pair
+        (f,s) where f() tests whether the configuration is at the goal,
+        and s() generates a new sample at the goal."""
+        if hasattr(goal,'__call__'):
+            self.planner.setEndpointSet(start,goal)
+        elif(len(goal) == 2 and hasattr(goal[0],'__call__')):
+            self.planner.setEndpointSet(start,goal[0],goal[1])
+        else:
+            self.planner.setEndpoints(start,goal)
 
     def addMilestone(self,x):
         """Manually adds a milestone and returns its index"""

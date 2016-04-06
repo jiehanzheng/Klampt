@@ -186,6 +186,7 @@ def planToConfig(world,robot,target,
 
 
 def planToSet(world,robot,target,
+              edgeCheckResolution=1e-2,
               extraConstraints=[],
               equalityConstraints=[],
               equalityTolerance=1e-3,
@@ -195,7 +196,11 @@ def planToSet(world,robot,target,
     """Arguments:
     - world: a WorldModel instance
     - robot: a RobotModel in the world
-    - target: a function testing whether the given configuration is a goal
+    - target: a function testing whether the given RobotModel configuration is
+      a goal, OR a CSpace instance where sample() generates a sample in the
+      target set and feasible(x) tests whether a sample is in the target set.
+      (The CSpace should be of the same dimensionality as the robot, not the
+      moving subset.)
     - extraConstraints: a list of possible extra constraint functions, each
       of which needs to return True if satisfied.
     - equalityConstraints: a list of IKObjectives or equality
@@ -229,14 +234,29 @@ def planToSet(world,robot,target,
                       movingSubset=subset)
 
     plan = SubsetMotionPlan(space,subset,q0,**planOptions)
+
+    if isinstance(target,CSpace):
+      if isinstance(target,EmbeddedCSpace):
+        def goaltest(x):
+          return target.feasible(space.lift(x))
+        def goalsample():
+          qrobot = target.sample()
+          qproj = space.project(qrobot)
+          return qproj
+        goal = [goaltest,goalsample]
+      else:
+        goal = [(lambda x:target.feasible(x)),(lambda : target.sample())]
+    else:
+      goal = target
     try:
-        plan.setEndpoints([q0[s] for s in subset],target)
+        print "a",target
+        plan.setEndpoints([q0[s] for s in subset],goal)
     except RuntimeError:
         #the start configuration is infeasible, print it out
         if space.cspace==None: space.setup()
         sfailures = space.cspace.feasibilityFailures([q0[s] for s in subset])
         print "Start configuration fails",sfailures
-        return None
+        raise
     return plan
 
 def planToCartesianObjective(world,robot,iktargets,iktolerance=1e-3,
