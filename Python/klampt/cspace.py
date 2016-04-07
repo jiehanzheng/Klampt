@@ -165,12 +165,12 @@ class CSpace:
         if name is None:
             name = "test_"+str(len(self.feasibilityTests)-1)
         self.feasibilityTestNames.append(name)
-        if dependency is not None:
+        if dependencies is not None:
             if isinstance(dependencies,(list,tuple)):
                 for d in dependencies:
-                    self.feasibilityTestDependencies.append(name,d)
+                    self.feasibilityTestDependencies.append((name,d))
             else:
-                self.feasibilityTestDependencies.append(name,dependencies)
+                self.feasibilityTestDependencies.append((name,dependencies))
 
     def inBounds(self,x):
         """Returns true if x is within the given bounds"""
