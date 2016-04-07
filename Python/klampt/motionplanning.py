@@ -312,9 +312,12 @@ class CSpaceInterface(_object):
         """adaptiveQueriesEnabled(CSpaceInterface self) -> bool"""
         return _motionplanning.CSpaceInterface_adaptiveQueriesEnabled(self)
 
-    def enableAdaptiveQueries(self, *args):
-        """enableAdaptiveQueries(CSpaceInterface self, bool enabled)"""
-        return _motionplanning.CSpaceInterface_enableAdaptiveQueries(self, *args)
+    def enableAdaptiveQueries(self, enabled=True):
+        """
+        enableAdaptiveQueries(CSpaceInterface self, bool enabled=True)
+        enableAdaptiveQueries(CSpaceInterface self)
+        """
+        return _motionplanning.CSpaceInterface_enableAdaptiveQueries(self, enabled)
 
     def optimizeQueryOrder(self):
         """optimizeQueryOrder(CSpaceInterface self)"""

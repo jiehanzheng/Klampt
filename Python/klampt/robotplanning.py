@@ -197,10 +197,10 @@ def planToSet(world,robot,target,
     - world: a WorldModel instance
     - robot: a RobotModel in the world
     - target: a function testing whether the given RobotModel configuration is
-      a goal, OR a CSpace instance where sample() generates a sample in the
-      target set and feasible(x) tests whether a sample is in the target set.
-      (The CSpace should be of the same dimensionality as the robot, not the
-      moving subset.)
+      a goal, OR an instance of a CSpace subclass where sample() generates a
+      sample in the target set and feasible(x) tests whether a sample is in the
+      target set. (The CSpace should be of the same dimensionality as the robot,
+      not the moving subset.)
     - extraConstraints: a list of possible extra constraint functions, each
       of which needs to return True if satisfied.
     - equalityConstraints: a list of IKObjectives or equality

@@ -24,19 +24,38 @@ class RobotCSpace(CSpace):
         self.collider = collider
         self.addFeasibilityTest((lambda x: self.inJointLimits(x)),"joint limits")
 
-        #TODO explode these into individual self collision / env collision
-        #tests
-        def setconfig(x):
-            self.robot.setConfig(x)
-            return True
         if collider:
+            def setconfig(x):
+                self.robot.setConfig(x)
+                return True
+            bb0 = ([float('inf')]*3,[float('-inf')]*3)
+            bb = [bb0[0],bb0[1]]
+            def calcbb(x):
+                bb[0] = bb0[0]
+                bb[1] = bb0[1]
+                for i in xrange(self.robot.numLinks()):
+                    g = self.robot.link(i).geometry()
+                    if not g.empty():
+                        bbi = g.getBB()
+                        bb[0] = [min(a,b) for (a,b) in zip(bb[0],bbi[0])]
+                        bb[1] = [max(a,b) for (a,b) in zip(bb[1],bbi[1])]
+                return True
+            def objCollide(o):
+                obb = self.collider.world.rigidObject(o).geometry().getBB()
+                if not robotcollide.bb_intersect(obb,bb): return False
+                return any(True for _ in self.collider.robotObjectCollisions(self.robot.index,o))
+            def terrCollide(o):
+                obb = self.collider.world.terrain(o).geometry().getBB()
+                if not robotcollide.bb_intersect(obb,bb): return False
+                return any(True for _ in self.collider.robotTerrainCollisions(self.robot.index,o))
             self.addFeasibilityTest(setconfig,"setconfig")
+            self.addFeasibilityTest(calcbb,"calcbb",dependencies="setconfig")
             self.addFeasibilityTest((lambda x: not self.selfCollision()),"self collision",dependencies="setconfig")
             #self.addFeasibilityTest((lambda x: not self.envCollision()),"env collision")
-            for o in xrange(self.collider.world.numRigidObjects()):
-                self.addFeasibilityTest((lambda x: not self.collider.robotObjectCollisions(self.robot.index,o)),"obj collision "+self.collider.world.rigidObject(o).getName(),dependencies="setconfig")
-            for o in xrange(self.collider.world.numTerrains()):
-                self.addFeasibilityTest((lambda x: not self.collider.robotTerrainCollisions(self.robot.index,o)),"terrain collision "+self.collider.world.terrain(o).getName(),dependencies="setconfig")
+            for o in range(self.collider.world.numRigidObjects()):
+                self.addFeasibilityTest((lambda x,o=o: not objCollide(o)),"obj collision "+str(o)+" "+self.collider.world.rigidObject(o).getName(),dependencies="calcbb")
+            for o in range(self.collider.world.numTerrains()):
+                self.addFeasibilityTest((lambda x,o=o: not terrCollide(o)),"terrain collision "+str(o)+" "+self.collider.world.terrain(o).getName(),dependencies="calcbb")
         self.properties['geodesic'] = 1
         volume = 1
         for b in self.bound:
@@ -146,7 +165,18 @@ class RobotSubsetCSpace(EmbeddedCSpace):
 
 class ClosedLoopRobotCSpace(RobotCSpace):
     """A closed loop cspace.  Allows one or more IK constraints to be
-    maintained during the robot's motion."""
+    maintained during the robot's motion.
+
+    Attributes:
+    - maxIters: maximum number of iterations for numerical IK solver
+    - tol: tolerance for IK constraint to be met.  The absolute value of the
+      IK residual must be below this tolerance for a configuration to be feasible.
+
+    To satisfy the IK constraint, the motion planner ensures that configuration
+    samples are projected to the manifold of closed-loop IK solutions.  To create
+    edges between samples a and b, the straight line path a and b is projected to
+    the manifold via an IK solve.
+    """
     def __init__(self,robot,iks,collider=None):
         RobotCSpace.__init__(self,robot,collider)
         self.solver = robotsim.IKSolver(robot)
@@ -223,9 +253,37 @@ class ClosedLoopRobotCSpace(RobotCSpace):
             respath += self.interpolationPath(a,b,epsilon)[1:]
         return respath
 
+    def sendPathToController(self,path,controller,epsilon=1e-2):
+        """Given a CSpace path path, sends the path to be executed to the SimRobotController.
+        This discretizes the path and sends it as a piecewise linear curve, limited in speed
+        by the robot's maximum velocity.
+
+        NOTE: this isn't the best thing to do for robots with slow acceleration limits
+        and/or high inertias because it ignores acceleration.  A better solution can be found
+        in the MInTOS package or the C++ code in Klampt/Planning/RobotTimeScaling.h."""
+        dpath = self.discretizePath(path,epsilon)
+        vmax = controller.model().getVelocityLimits()
+        assert len(dpath[0]) == len(vmax)
+        controller.setMilestone(dpath[0])
+        for a,b in zip(dpath[:-1],dpath[1:]):
+            dt = 0.0
+            for i in xrange(len(a)):
+                if vmax[i] == 0:
+                    if a[i] != b[i]: print "ClosedLoopRobotCSpace.sendPathToController(): Warning, path moves on DOF %d with maximum velocity 0"%(i,)
+                else:
+                    dt = max(dt,abs(a[i]-b[i])/vmax[i])
+            #this does a piecewise lienar interpolation
+            controller.appendLinear(dt,b)
+
 class ImplicitManifoldRobotCSpace(RobotCSpace):
     """A closed loop cspace with an arbitrary numerical manifold f(q)=0
-    to constrain the robot's motion."""
+    to constrain the robot's motion.  The argument implicitConstraint
+    should be a function f(q) returning a list of values that should be
+    equal to 0 up to the given tolerance.  Essentially this is a
+    ClosedLoopRobotCSpace except with a user-provided function.
+
+    See ClosedLoopRobotCSpace.
+    """
     def __init__(self,robot,implicitConstraint,collider=None):
         RobotCSpace.__init__self(robot,collider)
         self.implicitConstraint = implicitConstraint

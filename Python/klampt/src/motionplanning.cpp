@@ -201,12 +201,12 @@ void OptimizeTestingOrder(const vector<TesterStats>& stats,vector<vector<int> >&
   }
   else {
     //more complicated version with dependency graph
-    Graph::UndirectedGraph<int,int> G;
+    Graph::DirectedGraph<int,int> G;
     for(size_t i=0;i<stats.size();i++) 
       G.AddNode(int(i));
     for(size_t i=0;i<stats.size();i++) 
       for(size_t j=0;j<deps[i].size();j++)
-        G.AddEdge(i,deps[i][j]);
+        G.AddEdge(deps[i][j],i);
     //compute topological sort
     Graph::TopologicalSortCallback<int> callback;
     G.DFS(callback);
@@ -233,7 +233,7 @@ void OptimizeTestingOrder(const vector<TesterStats>& stats,vector<vector<int> >&
         for(G.Begin(*i,e);!e.end();e++) {
           int j=e.target();
           if(G.InDegree(j) > 1) //has more than one dependency
-            fprintf(stderr,"motionplanning: WARNING: Constraint has multiple dependencies, can't really optimize yet\n");
+            fprintf(stderr,"motionplanning: WARNING: Constraint %d has multiple dependencies including %d, can't really optimize yet\n",j,*i);
           double priority = (depcosts[*i]+depcosts[j])/(1.0-depprobs[*i]*depprobs[j]);
           if(priority < bestPriority || best < 0) {
             best = j;
@@ -250,8 +250,10 @@ void OptimizeTestingOrder(const vector<TesterStats>& stats,vector<vector<int> >&
     order.reserve(stats.size());
     FixedSizeHeap<double> queue(stats.size());
     vector<bool> visited(stats.size(),false);
-    for(size_t i=0;i<stats.size();i++)
-      if(G.InDegree(i) == 0) queue.push(int(i),priority[i].first);
+    for(size_t i=0;i<stats.size();i++) 
+      if(G.InDegree(i) == 0) {
+        queue.push(int(i),-priority[i].first);
+      }
     while(true) {
       int i;
       if(!queue.empty()) {
@@ -274,10 +276,36 @@ void OptimizeTestingOrder(const vector<TesterStats>& stats,vector<vector<int> >&
       Graph::EdgeIterator<int> e;
       for(G.Begin(i,e);!e.end();e++) {
         int j=e.target();
-        queue.push(j,priority[j].first);
+        queue.push(j,-priority[j].first);
       }
     }
   }
+  /*
+  //Debugging
+  printf("Costs:");
+  for(size_t i=0;i<stats.size();i++) 
+    printf(" %g",stats[i].cost);
+  printf("\n");
+  printf("Probabilities:");
+  for(size_t i=0;i<stats.size();i++) 
+    printf(" %g",stats[i].probability);
+  printf("\n");
+  printf("Dependencies:");
+  for(size_t i=0;i<deps.size();i++)  {
+    printf(" [");
+    for(size_t j=0;j<deps[i].size();j++) {
+      if(j > 0) printf(",");
+      printf("%d",deps[i][j]);
+    }
+    printf("]");
+  }
+  printf("\n");
+  printf("Order:");
+  for(size_t i=0;i<order.size();i++) 
+    printf(" %d",order[i]);
+  printf("\n");
+  //getchar();
+  */
 }
 
 class PyCSpace;
@@ -306,14 +334,16 @@ public:
   }
 
   PyObject* UpdateTempConfig(const Config& q) {
-    if(&q == cacheq) return cachex;
+    //PROBLEM when the values of q change, its address doesnt! we still have to re-make it
+    //if(&q == cacheq) return cachex;
     Py_XDECREF(cachex);
     cacheq = &q;
     cachex = PyListFromConfig(q);
     return cachex;
   }
   PyObject* UpdateTempConfig2(const Config& q) {
-    if(&q == cacheq2) return cachex2;
+    //PROBLEM when the values of q change, its address doesnt! we still have to re-make it
+    //if(&q == cacheq2) return cachex2;
     Py_XDECREF(cachex2);
     cacheq2 = &q;
     cachex2 = PyListFromConfig(q);
@@ -500,18 +530,10 @@ public:
       return CSpace::Distance(x,y);
     }
     else {
-      PyObject* args = PyTuple_New(2);
       PyObject* pyx = UpdateTempConfig(x);
-      PyObject* pyy = UpdateTempConfig(y);
-      Py_INCREF(pyx);
-      Py_INCREF(pyy);
-      PyTuple_SetItem(args, 0, pyx);
-      PyTuple_SetItem(args, 1, pyy);
-      PyObject* result = PyObject_CallObject(distance,args);
-      Py_DECREF(pyx);
-      Py_DECREF(pyy);
+      PyObject* pyy = UpdateTempConfig2(y);
+      PyObject* result = PyObject_CallFunctionObjArgs(distance,pyx,pyy,NULL);
       if(!result) {
-	Py_DECREF(args);
 	if(!PyErr_Occurred()) {
 	  throw PyException("Python distance method failed");
 	}
@@ -520,12 +542,10 @@ public:
 	}
       }
       if(!PyFloat_Check(result)) {
-	Py_DECREF(args);
 	Py_DECREF(result);
 	throw PyException("Python distance didn't return float");
       }
       double res=PyFloat_AsDouble(result);
-      Py_DECREF(args);
       Py_DECREF(result);
       return res;
     }
@@ -536,19 +556,12 @@ public:
       CSpace::Interpolate(x,y,u,out);
     }
     else {
-      PyObject* args = PyTuple_New(3);
       PyObject* pyx = UpdateTempConfig(x);
-      PyObject* pyy = UpdateTempConfig(y);
-      Py_INCREF(pyx);
-      Py_INCREF(pyy);
-      PyTuple_SetItem(args, 0, pyx);
-      PyTuple_SetItem(args, 1, pyy);
-      PyTuple_SetItem(args, 2, PyFloat_FromDouble(u));
-      PyObject* result = PyObject_CallObject(interpolate,args);
-      Py_DECREF(pyx);
-      Py_DECREF(pyy);
+      PyObject* pyy = UpdateTempConfig2(y);
+      PyObject* pyu = PyFloat_FromDouble(u);
+      PyObject* result = PyObject_CallFunctionObjArgs(interpolate,pyx,pyy,pyu,NULL);
+      Py_DECREF(pyu);
       if(!result) {
-	Py_DECREF(args);
 	if(!PyErr_Occurred()) {
 	  throw PyException("Python interpolate method failed");
 	}
@@ -558,11 +571,9 @@ public:
       }
       bool res=PyListToConfig(result,out);
       if(!res) {
-	Py_DECREF(args);
 	Py_DECREF(result);
 	throw PyException("Python interpolate method did not return a list");
       }
-      Py_DECREF(args);
       Py_DECREF(result);
     }
   }
@@ -644,14 +655,14 @@ public:
   virtual ~PyEdgePlanner() {}
   virtual bool IsVisible() {
     assert(space->visibleTests.size() == space->feasibleTests.size());
-    PyObject* args = PyTuple_New(2);
     PyObject* pya = space->UpdateTempConfig(a);
     PyObject* pyb = space->UpdateTempConfig2(b);
-    Py_INCREF(pya);
-    Py_INCREF(pyb);
-    PyTuple_SetItem(args, 0, pya);
-    PyTuple_SetItem(args, 1, pya);
     if(obstacle < 0) { //test all obstacles
+      PyObject* args = PyTuple_New(2);
+      Py_INCREF(pya);
+      Py_INCREF(pyb);
+      PyTuple_SetItem(args, 0, pya);
+      PyTuple_SetItem(args, 1, pya);
       for(size_t i=0;i<space->visibleTests.size();i++) {
         int obs = (space->visibleTestOrder.empty() ? (int)i : space->visibleTestOrder[i]);
         if(space->visibleTests[obs] == NULL) {
@@ -689,31 +700,23 @@ public:
           Py_DECREF(pya);
           Py_DECREF(pyb);
           Py_DECREF(args);
-          Py_DECREF(args);
           return false;
         }
       }
       Py_DECREF(pya);
       Py_DECREF(pyb);
       Py_DECREF(args);
-      Py_DECREF(args);    
     }
     else {
       //call visibility test for one obstacle
       if(space->visibleTests[obstacle] == NULL) {
         stringstream ss;
         ss<<"Python visible test for constraint "<<space->constraintNames[obstacle]<<"not defined"<<endl;
-        Py_DECREF(pya);
-        Py_DECREF(pyb);
-        Py_DECREF(args);
         throw PyException(ss.str().c_str());
       }
 
       if(space->adaptive) space->timer.Reset(); 	
-      PyObject* result = PyObject_CallObject(space->visibleTests[obstacle],args);
-      Py_DECREF(pya);
-      Py_DECREF(pyb);
-      Py_DECREF(args);
+      PyObject* result = PyObject_CallFunctionObjArgs(space->visibleTests[obstacle],pya,pyb,NULL);
       if(!result) {
         if(!PyErr_Occurred()) {
           throw PyException("Python visible method failed");
