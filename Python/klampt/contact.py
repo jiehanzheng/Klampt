@@ -32,7 +32,11 @@ class ContactPoint:
         - kFriction is the friction coefficient.
         - object1 and object2 are the objects in contact (optional).
     """
-    def __init__(self,x=[0.,0.,0.],n=[0.,0.,1.],kFriction=0.):
+    def __init__(self,x=None,n=None,kFriction=0.):
+        if x is None:
+            x = [0.,0.,0.]
+        if n is None:
+            n = [0.,0.,1.]
         self.x = x
         self.n = n
         self.kFriction = kFriction
@@ -40,9 +44,30 @@ class ContactPoint:
         self.object2 = None
 
     def reflect(self):
+        """Flips the contact point to switch the base object from object1
+        to object2"""
         p = ContactPoint(self.x,[-ni for ni in self.n],self.kFriction)
         p.object2,p.object1 = self.object1,self.object2
         return p
+
+    def transform(self,xform):
+        """Given a rigid transform xform given as an se3 element, transforms
+        the contact point."""
+        self.x = se3.apply(xform,self.x)
+        self.n = so3.apply(xform[0],self.n)
+
+    def tolist(self):
+        """Returns a 7-list representing this contact point, for use in
+        the stability testing routines."""
+        return self.x + self.n + [self.kFriction]
+
+    def fromlist(self,v):
+        """Reads the values x,n, and kFriction from the 7-list v."""
+        if len(v) != 7: raise ValueError("ContactPoint can only be converted from a 7-element list")
+        self.x = v[0:3]
+        self.n = v[3:6]
+        self.kFriction = v[6]
+
 
 def contactMap(contacts,fixed=None):
     """Given an unordered list of ContactPoints, computes a canonical dict

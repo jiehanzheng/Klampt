@@ -121,7 +121,7 @@ def readMatrix3(text):
 
 def writeContactPoint(cp):
     """Writes a contact point's members x,n,kFriction"""
-    return ' '.join(str(v) for v in (cp.x+cp.n+[cp.kFriction]))
+    return ' '.join(str(v) for v in cp.tolist())
 
 def readContactPoint(text):
     """Reads a contact point from a string 'x1 x2 x3 n1 n2 n3 kFriction'"""
