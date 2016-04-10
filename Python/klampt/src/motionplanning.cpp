@@ -3,6 +3,7 @@
 #include <KrisLibrary/planning/ExplicitCSpace.h>
 #include <KrisLibrary/planning/CSpaceHelpers.h>
 #include "pyerr.h"
+#include "pyconvert.h"
 #include <KrisLibrary/graph/IO.h>
 #include <KrisLibrary/graph/DirectedGraph.h>
 #include <KrisLibrary/graph/Callback.h>
@@ -22,134 +23,6 @@ void setRandomSeed(int seed)
   Math::Srand(seed);
 }
 
-PyObject* ToPy(int x) { return PyInt_FromLong(x); }
-PyObject* ToPy(double x) { return PyFloat_FromDouble(x); }
-PyObject* ToPy(const string& x) { return PyString_FromString(x.c_str()); }
-
-template <class T>
-PyObject* ToPy(const std::vector<T>& x)
-{
-  PyObject* ls = PyList_New(x.size());
-  PyObject* pItem;
-  if(ls == NULL) {
-    goto fail;
-  }
-	
-  for(Py_ssize_t i = 0; i < PySequence_Size(ls); i++) {
-    pItem = ::ToPy(x[i]);
-    if(pItem == NULL)
-      goto fail;
-    PyList_SetItem(ls, i, pItem);
-  }
-  
-  return ls;
-  
- fail:
-  Py_XDECREF(ls);
-  throw PyException("Failure during ToPy");
-  return NULL;
-}
-
-PyObject* ToPy(const Config& x) {
-  PyObject* ls = PyList_New(x.n);
-  PyObject* pItem;
-  if(ls == NULL) {
-    goto fail;
-  }
-	
-  for(Py_ssize_t i = 0; i < PySequence_Size(ls); i++) {
-    pItem = PyFloat_FromDouble(x[(int)i]);
-    if(pItem == NULL)
-      goto fail;
-    PyList_SetItem(ls, i, pItem);
-  }
-  
-  return ls;
-  
- fail:
-  Py_XDECREF(ls);
-  throw PyException("Failure during ToPy");
-  return NULL;
-}
-
-PyObject* PyListFromVector(const std::vector<double>& x)
-{
-  PyObject* ls = PyList_New(x.size());
-  PyObject* pItem;
-  if(ls == NULL) {
-    goto fail;
-  }
-	
-  for(Py_ssize_t i = 0; i < PySequence_Size(ls); i++) {
-    pItem = PyFloat_FromDouble(x[(int)i]);
-    if(pItem == NULL)
-      goto fail;
-    PyList_SetItem(ls, i, pItem);
-  }
-  
-  return ls;
-  
- fail:
-  Py_XDECREF(ls);
-  throw PyException("Failure during PyListFromVector");
-  return NULL;
-}
-
-bool PyListToVector(PyObject* seq,std::vector<double>& x)
-{
-  if(!PySequence_Check(seq))
-    return false;
-  
-  x.resize(PySequence_Size(seq));
-  for(Py_ssize_t i = 0; i < PySequence_Size(seq); i++)  {
-    PyObject* v=PySequence_GetItem(seq, i);
-    assert(v != NULL);
-    x[(int)i] = PyFloat_AsDouble(v);
-    Py_XDECREF(v);
-    if(PyErr_Occurred()) return false;
-  }
-  return true;
-}
-
-PyObject* PyListFromConfig(const Config& x)
-{
-  PyObject* ls = PyList_New(x.n);
-  PyObject* pItem;
-  if(ls == NULL) {
-    goto fail;
-  }
-	
-  for(Py_ssize_t i = 0; i < PySequence_Size(ls); i++) {
-    pItem = PyFloat_FromDouble(x[(int)i]);
-    if(pItem == NULL)
-      goto fail;
-    PyList_SetItem(ls, i, pItem);
-  }
-  
-  return ls;
-  
- fail:
-  Py_XDECREF(ls);
-  throw PyException("Failure during PyListFromConfig");
-  return NULL;
-}
-
-
-bool PyListToConfig(PyObject* seq,Config& x)
-{
-  if(!PySequence_Check(seq))
-    return false;
-  
-  x.resize(PySequence_Size(seq));
-  for(Py_ssize_t i = 0; i < PySequence_Size(seq); i++) {
-    PyObject* v=PySequence_GetItem(seq, i);
-    assert(v != NULL);
-    x[(int)i] = PyFloat_AsDouble(v);
-    Py_XDECREF(v);
-    if(PyErr_Occurred()) return false;
-  }
-  return true;
-}
 
 struct TesterStats
 {

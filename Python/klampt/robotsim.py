@@ -3909,6 +3909,52 @@ class Simulator(_object):
 Simulator_swigregister = _robotsim.Simulator_swigregister
 Simulator_swigregister(Simulator)
 
+
+def setFrictionConeApproximationEdges(*args):
+  """setFrictionConeApproximationEdges(int numEdges)"""
+  return _robotsim.setFrictionConeApproximationEdges(*args)
+
+def forceClosure(*args):
+  """
+    forceClosure(doubleMatrix contacts) -> bool
+    forceClosure(doubleMatrix contactPositions, doubleMatrix frictionCones) -> bool
+    """
+  return _robotsim.forceClosure(*args)
+
+def forceClosure2D(*args):
+  """
+    forceClosure2D(doubleMatrix contacts) -> bool
+    forceClosure2D(doubleMatrix contactPositions, doubleMatrix frictionCones) -> bool
+    """
+  return _robotsim.forceClosure2D(*args)
+
+def comEquilibrium(*args):
+  """
+    comEquilibrium(doubleMatrix contacts, doubleVector fext, PyObject * com) -> PyObject
+    comEquilibrium(doubleMatrix contactPositions, doubleMatrix frictionCones, doubleVector fext, PyObject * com) -> PyObject *
+    """
+  return _robotsim.comEquilibrium(*args)
+
+def comEquilibrium2D(*args):
+  """
+    comEquilibrium2D(doubleMatrix contacts, doubleVector fext, PyObject * com) -> PyObject
+    comEquilibrium2D(doubleMatrix contactPositions, doubleMatrix frictionCones, doubleVector fext, PyObject * com) -> PyObject *
+    """
+  return _robotsim.comEquilibrium2D(*args)
+
+def supportPolygon(*args):
+  """
+    supportPolygon(doubleMatrix contacts) -> PyObject
+    supportPolygon(doubleMatrix contactPositions, doubleMatrix frictionCones) -> PyObject *
+    """
+  return _robotsim.supportPolygon(*args)
+
+def supportPolygon2D(*args):
+  """
+    supportPolygon2D(doubleMatrix contacts) -> PyObject
+    supportPolygon2D(doubleMatrix contacts, doubleMatrix frictionCones) -> PyObject *
+    """
+  return _robotsim.supportPolygon2D(*args)
 # This file is compatible with both classic and new-style classes.
 
 
