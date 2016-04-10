@@ -1349,6 +1349,7 @@ void PlannerInterface::planMore(int iterations)
 {
   if(index < 0 || index >= (int)plans.size() || plans[index]==NULL) 
     throw PyException("Invalid plan index");
+  if(plans[index]->IsPointToPoint() && plans[index]->NumMilestones() < 1) throw PyException("No start or goal set for point-to-point planner, cannot start");
   spaces[spaceIndex]->OptimizeQueryOrder();
   plans[index]->PlanMore(iterations);
   //printf("Plan now has %d milestones, %d components\n",plans[plan]->NumMilestones(),plans[plan]->NumComponents());
