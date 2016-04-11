@@ -121,4 +121,36 @@ PyObject* supportPolygon2D(const std::vector<std::vector<double> >& contacts);
 PyObject* supportPolygon2D(const std::vector<std::vector<double> >& contacts,const std::vector<std::vector<double> >& frictionCones);
 
 
+/// Solves for the torques / forces that keep the robot balanced against gravity
+/// 
+/// Arguments
+/// - robot: the robot model, posed in its current configuration
+/// - contacts: a list of contact points, given as 7-lists [x,y,z,nx,ny,nz,kFriction]
+/// - links: a list of the links on which those contact points lie
+/// - fext: the external force (e.g., gravity)
+/// - norm: the torque norm to minimize.  If 0, minimizes the l-infinity norm (default)
+///         If 1, minimizes the l-1 norm.  If 2, minimizes the l-2 norm (experimental,
+///          may not get good results)
+///
+/// Return value is a pair (t,f) giving the joint torques and frictional
+/// contact forces, if a solution exists, or None if no solution exists.
+PyObject* equilibriumTorques(const RobotModel& robot,
+							const std::vector<std::vector<double> >& contacts,const std::vector<int>& links,
+							const std::vector<double>& fext,
+							double norm=0);
+/// Same as the above equilibriumTorques, but accepts another argument
+/// internalTorques.
+///
+/// internalTorques is a list of length robot.numLinks(), and allows you
+/// to solve for dynamic situations, e.g., with coriolis forces taken
+/// into account.  To do so, set the robot's joint velocities dq, calculate
+/// then calculate the torques via robot.torquesFromAccel(ddq), and pass
+/// the result into internalTorques.
+PyObject* equilibriumTorques(const RobotModel& robot,
+							const std::vector<std::vector<double> >& contacts,const std::vector<int>& links,
+							const std::vector<double>& fext,
+							const std::vector<double>& internalTorques,
+							double norm=0);
+
+
 #endif // _STABILITY_H

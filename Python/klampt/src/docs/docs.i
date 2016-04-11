@@ -32,8 +32,9 @@ example, for convex constraints you can set it to the lambda function
 that returns true regardless of its arguments).
 
 Supported properties include \"euclidean\" (boolean), \"metric\"
-(string), \"geodesic\" (boolean). These may be used by planners to
-make planning faster or more accurate. For a more complete list see
+(string), \"geodesic\" (boolean), \"minimum\" (vector), and
+\"maximum\" (vector). These may be used by planners to make planning
+faster or more accurate. For a complete list see
 KrisLibrary/planning/CSpace.h.
 
 C++ includes: motionplanning.h ";
@@ -70,23 +71,103 @@ C++ includes: motionplanning.h ";
 
 %feature("docstring")  CSpaceInterface::isFeasible "
 
+Queries whether a given configuration is feasible.
+
 queries ";
 
-%feature("docstring")  CSpaceInterface::isVisible "";
+%feature("docstring")  CSpaceInterface::isVisible "
 
-%feature("docstring")  CSpaceInterface::testFeasibility "";
+Queries whether two configurations are visible. ";
 
-%feature("docstring")  CSpaceInterface::testVisibility "";
+%feature("docstring")  CSpaceInterface::testFeasibility "
 
-%feature("docstring")  CSpaceInterface::feasibilityFailures "";
+Queries whether a given configuration is feasible with respect to a
+given constraint. ";
 
-%feature("docstring")  CSpaceInterface::visibilityFailures "";
+%feature("docstring")  CSpaceInterface::testVisibility "
 
-%feature("docstring")  CSpaceInterface::sample "";
+Queries whether two configurations are visible with respect to a given
+constraint. ";
 
-%feature("docstring")  CSpaceInterface::distance "";
+%feature("docstring")  CSpaceInterface::feasibilityFailures "
 
-%feature("docstring")  CSpaceInterface::interpolate "";
+Returns a list of all failed feasibility constraints. ";
+
+%feature("docstring")  CSpaceInterface::visibilityFailures "
+
+Returns a list of all failed visibility constraints. ";
+
+%feature("docstring")  CSpaceInterface::sample "
+
+Samples a configuration. ";
+
+%feature("docstring")  CSpaceInterface::distance "
+
+Returns the distance between two configurations. ";
+
+%feature("docstring")  CSpaceInterface::interpolate "
+
+Interpolates between two configurations. ";
+
+%feature("docstring")  CSpaceInterface::adaptiveQueriesEnabled "
+
+optional: adaptive queries can be used to automatically minimize the
+total cost of testing feasibility / visibility using empirical
+estimates. Off by default. ";
+
+%feature("docstring")  CSpaceInterface::enableAdaptiveQueries "
+
+Call this to enable adaptive queries. (It has a small overhead.) ";
+
+%feature("docstring")  CSpaceInterface::optimizeQueryOrder "
+
+Call this to optimize the feasibility / visibility testing order. ";
+
+%feature("docstring")  CSpaceInterface::setFeasibilityDependency "
+
+Marks that a certain feasibility test must be performed before
+another. ";
+
+%feature("docstring")  CSpaceInterface::setFeasibilityPrior "
+
+Resets the data for a certain feasibility test. Default values give a
+data-gathering behavior. ";
+
+%feature("docstring")  CSpaceInterface::setVisibilityDependency "
+
+Marks that a certain feasibility test must be performed before
+another. ";
+
+%feature("docstring")  CSpaceInterface::setVisibilityPrior "
+
+Resets the data for a certain visibility test. Default values give a
+data-gathering behavior. ";
+
+%feature("docstring")  CSpaceInterface::feasibilityCost "
+
+Retrieves the empirical average cost of a given feasibility test. ";
+
+%feature("docstring")  CSpaceInterface::feasibilityProbability "
+
+Retrieves the empirical average success rate of a given feasibility
+test. ";
+
+%feature("docstring")  CSpaceInterface::visibilityCost "
+
+Retrieves the empirical average cost of a given visibility test. ";
+
+%feature("docstring")  CSpaceInterface::visibilityProbability "
+
+Retrieves the empirical average success rate of a given visibility
+test. ";
+
+%feature("docstring")  CSpaceInterface::feasibilityQueryOrder "
+
+Retrieves the current order of feasibility tests. ";
+
+%feature("docstring")  CSpaceInterface::visibilityQueryOrder "
+
+Retrieves the current order of visibility tests. ";
 
 
 // File: classGeneralizedIKObjective.xml
@@ -219,6 +300,8 @@ it is zero. (Note that this is NOT the same thing as simulation body
 collision padding!)
 
 C++ includes: geometry.h ";
+
+%feature("docstring")  Geometry3D::Geometry3D "";
 
 %feature("docstring")  Geometry3D::Geometry3D "";
 
@@ -452,7 +535,17 @@ For axis rotation constraints, returns the local and global axes. ";
 
 %feature("docstring")  IKObjective::getTransform "
 
-For fixed-transform constraints, returns the transform (R,T) ";
+For fixed-transform constraints, returns the transform (R,t) ";
+
+%feature("docstring")  IKObjective::transform "
+
+Tranforms the target position/rotation of this IK constraint by
+transform (R,t) ";
+
+%feature("docstring")  IKObjective::transformLocal "
+
+Tranforms the local position/rotation of this IK constraint by
+transform (R,t) ";
 
 %feature("docstring")  IKObjective::loadString "
 
@@ -622,6 +715,8 @@ C++ includes: motionplanning.h ";
 
 %feature("docstring")  PlannerInterface::setEndpoints "";
 
+%feature("docstring")  PlannerInterface::setEndpointSet "";
+
 %feature("docstring")  PlannerInterface::addMilestone "";
 
 %feature("docstring")  PlannerInterface::planMore "";
@@ -741,6 +836,10 @@ A CSpace that calls python routines for its functionality ";
 
 %feature("docstring")  PyCSpace::~PyCSpace "";
 
+%feature("docstring")  PyCSpace::UpdateTempConfig "";
+
+%feature("docstring")  PyCSpace::UpdateTempConfig2 "";
+
 %feature("docstring")  PyCSpace::Sample "";
 
 %feature("docstring")  PyCSpace::SampleNeighborhood "";
@@ -766,6 +865,12 @@ A CSpace that calls python routines for its functionality ";
 %feature("docstring")  PyCSpace::Interpolate "";
 
 %feature("docstring")  PyCSpace::Properties "";
+
+%feature("docstring")  PyCSpace::AddFeasibleDependency "";
+
+%feature("docstring")  PyCSpace::AddVisibleDependency "";
+
+%feature("docstring")  PyCSpace::OptimizeQueryOrder "";
 
 
 // File: classPyEdgePlanner.xml
@@ -807,7 +912,7 @@ A CSpace that calls python routines for its functionality ";
 
 A rigid movable object.
 
-State is retrieved/set using get/setTransform. No velocities are
+State is retrieved/set using get/setTransform. Note: no velocities are
 stored.
 
 C++ includes: robotmodel.h ";
@@ -834,7 +939,13 @@ C++ includes: robotmodel.h ";
 
 %feature("docstring")  RigidObjectModel::setTransform "";
 
-%feature("docstring")  RigidObjectModel::drawGL "";
+%feature("docstring")  RigidObjectModel::drawGL "
+
+Draws the object's geometry. If keepAppearance=true, the current
+appearance is honored. Otherwise, only the raw geometry is drawn.
+PERFORMANCE WARNING: if keepAppearance is false, then this does not
+properly reuse OpenGL display lists. A better approach to changing
+object's Appearance directly. ";
 
 
 // File: classRobotModel.xml
@@ -1023,7 +1134,10 @@ testing) ";
 %feature("docstring")  RobotModel::drawGL "
 
 Draws the robot geometry. If keepAppearance=true, the current
-appearance is honored. Otherwise, only the raw geometry is drawn. ";
+appearance is honored. Otherwise, only the raw geometry is drawn.
+PERFORMANCE WARNING: if keepAppearance is false, then this does not
+properly reuse OpenGL display lists. A better approach to changing the
+robot's appearances is to set the link Appearance's directly. ";
 
 
 // File: classRobotModelDriver.xml
@@ -1095,7 +1209,9 @@ C++ includes: robotmodel.h ";
 Returns the ID of the robot link in its world (Note: not the same as
 getIndex()) ";
 
-%feature("docstring")  RobotModelLink::getName "";
+%feature("docstring")  RobotModelLink::getName "
+
+Returns the name of the robot link. ";
 
 %feature("docstring")  RobotModelLink::robot "
 
@@ -1113,9 +1229,18 @@ Returns the index of the link (on its robot). ";
 
 Returns the index of the link's parent (on its robot). ";
 
+%feature("docstring")  RobotModelLink::parent "
+
+Returns a reference to the link's parent, or a NULL link if it has no
+parent. ";
+
 %feature("docstring")  RobotModelLink::setParent "
 
 Sets the index of the link's parent (on its robot). ";
+
+%feature("docstring")  RobotModelLink::setParent "
+
+Sets the link's parent (must be on the same robot). ";
 
 %feature("docstring")  RobotModelLink::geometry "
 
@@ -1246,18 +1371,18 @@ i.e., it will be pure kinematic simulation. ";
 
 %feature("docstring")  SimBody::applyWrench "
 
-Applies a force and torque about the COM at the current simulation
-time step. ";
+Applies a force and torque about the COM over the duration of the next
+Simulator.simulate(t) call. ";
 
 %feature("docstring")  SimBody::applyForceAtPoint "
 
-Applies a force at a given point (in world coordinates) at the current
-simulation time step. ";
+Applies a force at a given point (in world coordinates) over the
+duration of the next Simulator.simulate(t) call. ";
 
 %feature("docstring")  SimBody::applyForceAtLocalPoint "
 
-Applies a force at a given point (in local coordinates) at the current
-simulation time step. ";
+Applies a force at a given point (in local coordinates) over the
+duration of the next Simulator.simulate(t) call. ";
 
 %feature("docstring")  SimBody::setTransform "
 
@@ -1322,6 +1447,10 @@ C++ includes: robotsim.h ";
 %feature("docstring")  SimRobotController::SimRobotController "";
 
 %feature("docstring")  SimRobotController::~SimRobotController "";
+
+%feature("docstring")  SimRobotController::model "
+
+Retrieves the robot model associated with this controller. ";
 
 %feature("docstring")  SimRobotController::setRate "
 
@@ -1553,7 +1682,10 @@ simulator. ";
 
 Call this to enable contact feedback between the two objects
 (arguments are indexes returned by object.getID()). Contact feedback
-has a small overhead so you may want to do this selectively. ";
+has a small overhead so you may want to do this selectively. This must
+be called before using inContact, getContacts, getContactForces,
+contactForce, contactTorque, hadContact, hadSeparation,
+hadPenetration, and meanContactForce. ";
 
 %feature("docstring")  Simulator::enableContactFeedbackAll "
 
@@ -1564,12 +1696,14 @@ selectively. ";
 %feature("docstring")  Simulator::inContact "
 
 Returns true if the objects (indexes returned by object.getID()) are
-in contact on the current time step. ";
+in contact on the current time step. You can set bid=-1 to tell if
+object a is in contact with any object. ";
 
 %feature("docstring")  Simulator::getContacts "
 
 Returns the list of contacts (x,n,kFriction) at the last time step.
-Normals point into object a. ";
+Normals point into object a. The contact point (x,n,kFriction) is
+represented as a 7-element vector. ";
 
 %feature("docstring")  Simulator::getContactForces "
 
@@ -1578,22 +1712,35 @@ Returns the list of contact forces on object a at the last time step.
 
 %feature("docstring")  Simulator::contactForce "
 
-Returns the contact force on object a at the last time step. ";
+Returns the contact force on object a at the last time step. You can
+set bid to -1 to get the overall contact force on object a. ";
 
 %feature("docstring")  Simulator::contactTorque "
 
 Returns the contact force on object a (about a's origin) at the last
-time step. ";
+time step. You can set bid to -1 to get the overall contact force on
+object a. ";
 
 %feature("docstring")  Simulator::hadContact "
 
 Returns true if the objects had contact over the last simulate() call.
-";
+You can set bid to -1 to determine if object a had contact with any
+other object. ";
 
 %feature("docstring")  Simulator::hadSeparation "
 
 Returns true if the objects had ever separated during the last
-simulate() call. ";
+simulate() call. You can set bid to -1 to determine if object a had no
+contact with any other object. ";
+
+%feature("docstring")  Simulator::hadPenetration "
+
+Returns true if the objects interpenetrated during the last simulate()
+call. If so, the simulation may lead to very inaccurate results or
+artifacts. You can set bid to -1 to determine if object a penetrated
+any object, or you can set aid=bid=-1 to determine whether any object
+is penetrating any other (indicating that the simulation will not be
+functioning properly in general). ";
 
 %feature("docstring")  Simulator::meanContactForce "
 
@@ -1673,7 +1820,23 @@ C++ includes: robotmodel.h ";
 
 %feature("docstring")  TerrainModel::setFriction "";
 
-%feature("docstring")  TerrainModel::drawGL "";
+%feature("docstring")  TerrainModel::drawGL "
+
+Draws the object's geometry. If keepAppearance=true, the current
+appearance is honored. Otherwise, only the raw geometry is drawn.
+PERFORMANCE WARNING: if keepAppearance is false, then this does not
+properly reuse OpenGL display lists. A better approach to changing
+object's Appearance directly. ";
+
+
+// File: structTesterStats.xml
+%feature("docstring") TesterStats "";
+
+%feature("docstring")  TesterStats::TesterStats "";
+
+%feature("docstring")  TesterStats::reset "";
+
+%feature("docstring")  TesterStats::update "";
 
 
 // File: structTriangleMesh.xml
@@ -1879,7 +2042,7 @@ Retrieves an appearance for a given element ID. ";
 
 %feature("docstring")  WorldModel::drawGL "
 
-Draws the entire world. ";
+Draws the entire world using OpenGL. ";
 
 %feature("docstring")  WorldModel::enableGeometryLoading "
 
@@ -1910,23 +2073,7 @@ casting routines are called. ";
 
 Sets the random seed used by the motion planner. ";
 
-%feature("docstring")  std::ToPy "";
-
-%feature("docstring")  std::ToPy "";
-
-%feature("docstring")  std::ToPy "";
-
-%feature("docstring")  std::ToPy "";
-
-%feature("docstring")  std::ToPy "";
-
-%feature("docstring")  std::PyListFromVector "";
-
-%feature("docstring")  std::PyListToVector "";
-
-%feature("docstring")  std::PyListFromConfig "";
-
-%feature("docstring")  std::PyListToConfig "";
+%feature("docstring")  std::OptimizeTestingOrder "";
 
 %feature("docstring")  std::makeNewCSpace "";
 
@@ -2157,8 +2304,6 @@ from the space of transforms that satisfies the objective. ";
 
 %feature("docstring")  GetMotionQueue "";
 
-%feature("docstring")  MakeSensors "";
-
 %feature("docstring")  GetMesh "";
 
 %feature("docstring")  GetMesh "";
@@ -2176,6 +2321,69 @@ from the space of transforms that satisfies the objective. ";
 %feature("docstring")  copy "";
 
 %feature("docstring")  GetCameraViewport "";
+
+%feature("docstring")  setFrictionConeApproximationEdges "";
+
+%feature("docstring")  Convert "";
+
+%feature("docstring")  Convert "";
+
+%feature("docstring")  Convert "";
+
+%feature("docstring")  Convert "";
+
+%feature("docstring")  forceClosure "";
+
+%feature("docstring")  forceClosure "";
+
+%feature("docstring")  forceClosure2D "";
+
+%feature("docstring")  forceClosure2D "";
+
+%feature("docstring")  ToPy2 "";
+
+%feature("docstring")  ToPy2 "";
+
+%feature("docstring")  comEquilibrium "";
+
+%feature("docstring")  comEquilibrium "";
+
+%feature("docstring")  comEquilibrium2D "";
+
+%feature("docstring")  comEquilibrium2D "";
+
+%feature("docstring")  supportPolygon "";
+
+%feature("docstring")  supportPolygon "
+
+A fancy version of the normal supportPolygon test. contactPositions is
+a list of 3-lists giving the contact point positions. The i'th element
+in the list frictionCones has length (k*4), and gives the contact
+force constraints (ax,ay,az,b) where ax*fx+ay*fy+az*fz <= b limits the
+contact force (fx,fy,fz) at the i'th contact. Each of the k 4-tuples
+is laid out sequentially per-contact.
+
+The return value is a list of 3-tuples giving the sorted plane
+boundaries of the polygon. The format of a plane is (nx,ny,ofs) where
+(nx,ny) are the outward facing normals, and ofs is the offset from 0.
+In other words to test stability of a com [x,y], you can test whether
+dot([nx,ny],[x,y]) <= ofs for all planes. ";
+
+%feature("docstring")  supportPolygon2D "
+
+Calculates the support polygon (interval) for a given set of contacts
+and a downward external force (0,-g). A contact point is given by a
+list of 4 floats, [x,y,theta,k] as usual.
+
+The return value is a 2-tuple giving the min / max extents of the
+support polygon. If they are both infinite, the support polygon is
+empty. ";
+
+%feature("docstring")  supportPolygon2D "";
+
+%feature("docstring")  equilibriumTorques "";
+
+%feature("docstring")  equilibriumTorques "";
 
 
 // File: robotsim_8h.xml
@@ -2202,8 +2410,6 @@ Sets the function object, returns 0 if pVFObj = NULL, 1 otherwise. See
 vectorfield.py for an abstract base class that can be overridden to
 produce one of these objects. Equivalent to setVectorField; just a
 more intuitive name. ";
-
-%feature("docstring")  PyListFromVector "";
 
 %feature("docstring")  findRoots "
 

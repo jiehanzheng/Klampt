@@ -5,7 +5,7 @@ It can also be run in script mode to print stats about the path, to time-scale
 or reverse a path, and concatenate multiple MultiPaths together.
 """
 
-from hold import *
+from contact import Hold
 from loader import *
 import vectorops
 import xml.etree.ElementTree as ET

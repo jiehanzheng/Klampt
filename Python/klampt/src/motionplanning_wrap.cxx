@@ -6746,42 +6746,132 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"CSpaceInterface_isFeasible", _wrap_CSpaceInterface_isFeasible, METH_VARARGS, (char *)"\n"
 		"CSpaceInterface_isFeasible(CSpaceInterface self, PyObject * q) -> bool\n"
 		"\n"
+		"Queries whether a given configuration is feasible.\n"
+		"\n"
 		"queries \n"
 		""},
-	 { (char *)"CSpaceInterface_isVisible", _wrap_CSpaceInterface_isVisible, METH_VARARGS, (char *)"CSpaceInterface_isVisible(CSpaceInterface self, PyObject * a, PyObject * b) -> bool"},
-	 { (char *)"CSpaceInterface_testFeasibility", _wrap_CSpaceInterface_testFeasibility, METH_VARARGS, (char *)"CSpaceInterface_testFeasibility(CSpaceInterface self, char const * name, PyObject * q) -> bool"},
-	 { (char *)"CSpaceInterface_testVisibility", _wrap_CSpaceInterface_testVisibility, METH_VARARGS, (char *)"CSpaceInterface_testVisibility(CSpaceInterface self, char const * name, PyObject * a, PyObject * b) -> bool"},
-	 { (char *)"CSpaceInterface_feasibilityFailures", _wrap_CSpaceInterface_feasibilityFailures, METH_VARARGS, (char *)"CSpaceInterface_feasibilityFailures(CSpaceInterface self, PyObject * q) -> PyObject *"},
-	 { (char *)"CSpaceInterface_visibilityFailures", _wrap_CSpaceInterface_visibilityFailures, METH_VARARGS, (char *)"CSpaceInterface_visibilityFailures(CSpaceInterface self, PyObject * a, PyObject * b) -> PyObject *"},
-	 { (char *)"CSpaceInterface_sample", _wrap_CSpaceInterface_sample, METH_VARARGS, (char *)"CSpaceInterface_sample(CSpaceInterface self) -> PyObject *"},
-	 { (char *)"CSpaceInterface_distance", _wrap_CSpaceInterface_distance, METH_VARARGS, (char *)"CSpaceInterface_distance(CSpaceInterface self, PyObject * a, PyObject * b) -> double"},
-	 { (char *)"CSpaceInterface_interpolate", _wrap_CSpaceInterface_interpolate, METH_VARARGS, (char *)"CSpaceInterface_interpolate(CSpaceInterface self, PyObject * a, PyObject * b, double u) -> PyObject *"},
-	 { (char *)"CSpaceInterface_adaptiveQueriesEnabled", _wrap_CSpaceInterface_adaptiveQueriesEnabled, METH_VARARGS, (char *)"CSpaceInterface_adaptiveQueriesEnabled(CSpaceInterface self) -> bool"},
+	 { (char *)"CSpaceInterface_isVisible", _wrap_CSpaceInterface_isVisible, METH_VARARGS, (char *)"\n"
+		"CSpaceInterface_isVisible(CSpaceInterface self, PyObject * a, PyObject * b) -> bool\n"
+		"\n"
+		"Queries whether two configurations are visible. \n"
+		""},
+	 { (char *)"CSpaceInterface_testFeasibility", _wrap_CSpaceInterface_testFeasibility, METH_VARARGS, (char *)"\n"
+		"CSpaceInterface_testFeasibility(CSpaceInterface self, char const * name, PyObject * q) -> bool\n"
+		"\n"
+		"Queries whether a given configuration is feasible with respect to a\n"
+		"given constraint. \n"
+		""},
+	 { (char *)"CSpaceInterface_testVisibility", _wrap_CSpaceInterface_testVisibility, METH_VARARGS, (char *)"\n"
+		"CSpaceInterface_testVisibility(CSpaceInterface self, char const * name, PyObject * a, PyObject * b) -> bool\n"
+		"\n"
+		"Queries whether two configurations are visible with respect to a given\n"
+		"constraint. \n"
+		""},
+	 { (char *)"CSpaceInterface_feasibilityFailures", _wrap_CSpaceInterface_feasibilityFailures, METH_VARARGS, (char *)"\n"
+		"CSpaceInterface_feasibilityFailures(CSpaceInterface self, PyObject * q) -> PyObject *\n"
+		"\n"
+		"Returns a list of all failed feasibility constraints. \n"
+		""},
+	 { (char *)"CSpaceInterface_visibilityFailures", _wrap_CSpaceInterface_visibilityFailures, METH_VARARGS, (char *)"\n"
+		"CSpaceInterface_visibilityFailures(CSpaceInterface self, PyObject * a, PyObject * b) -> PyObject *\n"
+		"\n"
+		"Returns a list of all failed visibility constraints. \n"
+		""},
+	 { (char *)"CSpaceInterface_sample", _wrap_CSpaceInterface_sample, METH_VARARGS, (char *)"\n"
+		"CSpaceInterface_sample(CSpaceInterface self) -> PyObject *\n"
+		"\n"
+		"Samples a configuration. \n"
+		""},
+	 { (char *)"CSpaceInterface_distance", _wrap_CSpaceInterface_distance, METH_VARARGS, (char *)"\n"
+		"CSpaceInterface_distance(CSpaceInterface self, PyObject * a, PyObject * b) -> double\n"
+		"\n"
+		"Returns the distance between two configurations. \n"
+		""},
+	 { (char *)"CSpaceInterface_interpolate", _wrap_CSpaceInterface_interpolate, METH_VARARGS, (char *)"\n"
+		"CSpaceInterface_interpolate(CSpaceInterface self, PyObject * a, PyObject * b, double u) -> PyObject *\n"
+		"\n"
+		"Interpolates between two configurations. \n"
+		""},
+	 { (char *)"CSpaceInterface_adaptiveQueriesEnabled", _wrap_CSpaceInterface_adaptiveQueriesEnabled, METH_VARARGS, (char *)"\n"
+		"CSpaceInterface_adaptiveQueriesEnabled(CSpaceInterface self) -> bool\n"
+		"\n"
+		"optional: adaptive queries can be used to automatically minimize the\n"
+		"total cost of testing feasibility / visibility using empirical\n"
+		"estimates. Off by default. \n"
+		""},
 	 { (char *)"CSpaceInterface_enableAdaptiveQueries", _wrap_CSpaceInterface_enableAdaptiveQueries, METH_VARARGS, (char *)"\n"
 		"enableAdaptiveQueries(bool enabled=True)\n"
 		"CSpaceInterface_enableAdaptiveQueries(CSpaceInterface self)\n"
+		"\n"
+		"Call this to enable adaptive queries. (It has a small overhead.) \n"
 		""},
-	 { (char *)"CSpaceInterface_optimizeQueryOrder", _wrap_CSpaceInterface_optimizeQueryOrder, METH_VARARGS, (char *)"CSpaceInterface_optimizeQueryOrder(CSpaceInterface self)"},
-	 { (char *)"CSpaceInterface_setFeasibilityDependency", _wrap_CSpaceInterface_setFeasibilityDependency, METH_VARARGS, (char *)"CSpaceInterface_setFeasibilityDependency(CSpaceInterface self, char const * name, char const * precedingTest)"},
+	 { (char *)"CSpaceInterface_optimizeQueryOrder", _wrap_CSpaceInterface_optimizeQueryOrder, METH_VARARGS, (char *)"\n"
+		"CSpaceInterface_optimizeQueryOrder(CSpaceInterface self)\n"
+		"\n"
+		"Call this to optimize the feasibility / visibility testing order. \n"
+		""},
+	 { (char *)"CSpaceInterface_setFeasibilityDependency", _wrap_CSpaceInterface_setFeasibilityDependency, METH_VARARGS, (char *)"\n"
+		"CSpaceInterface_setFeasibilityDependency(CSpaceInterface self, char const * name, char const * precedingTest)\n"
+		"\n"
+		"Marks that a certain feasibility test must be performed before\n"
+		"another. \n"
+		""},
 	 { (char *)"CSpaceInterface_setFeasibilityPrior", _wrap_CSpaceInterface_setFeasibilityPrior, METH_VARARGS, (char *)"\n"
 		"setFeasibilityPrior(char const * name, double costPrior=0.0, double feasibilityProbability=0.0, double evidenceStrength=1.0)\n"
 		"setFeasibilityPrior(char const * name, double costPrior=0.0, double feasibilityProbability=0.0)\n"
 		"setFeasibilityPrior(char const * name, double costPrior=0.0)\n"
 		"CSpaceInterface_setFeasibilityPrior(CSpaceInterface self, char const * name)\n"
+		"\n"
+		"Resets the data for a certain feasibility test. Default values give a\n"
+		"data-gathering behavior. \n"
 		""},
-	 { (char *)"CSpaceInterface_setVisibilityDependency", _wrap_CSpaceInterface_setVisibilityDependency, METH_VARARGS, (char *)"CSpaceInterface_setVisibilityDependency(CSpaceInterface self, char const * name, char const * precedingTest)"},
+	 { (char *)"CSpaceInterface_setVisibilityDependency", _wrap_CSpaceInterface_setVisibilityDependency, METH_VARARGS, (char *)"\n"
+		"CSpaceInterface_setVisibilityDependency(CSpaceInterface self, char const * name, char const * precedingTest)\n"
+		"\n"
+		"Marks that a certain feasibility test must be performed before\n"
+		"another. \n"
+		""},
 	 { (char *)"CSpaceInterface_setVisibilityPrior", _wrap_CSpaceInterface_setVisibilityPrior, METH_VARARGS, (char *)"\n"
 		"setVisibilityPrior(char const * name, double costPrior=0.0, double visibilityProbability=0.0, double evidenceStrength=1.0)\n"
 		"setVisibilityPrior(char const * name, double costPrior=0.0, double visibilityProbability=0.0)\n"
 		"setVisibilityPrior(char const * name, double costPrior=0.0)\n"
 		"CSpaceInterface_setVisibilityPrior(CSpaceInterface self, char const * name)\n"
+		"\n"
+		"Resets the data for a certain visibility test. Default values give a\n"
+		"data-gathering behavior. \n"
 		""},
-	 { (char *)"CSpaceInterface_feasibilityCost", _wrap_CSpaceInterface_feasibilityCost, METH_VARARGS, (char *)"CSpaceInterface_feasibilityCost(CSpaceInterface self, char const * name) -> double"},
-	 { (char *)"CSpaceInterface_feasibilityProbability", _wrap_CSpaceInterface_feasibilityProbability, METH_VARARGS, (char *)"CSpaceInterface_feasibilityProbability(CSpaceInterface self, char const * name) -> double"},
-	 { (char *)"CSpaceInterface_visibilityCost", _wrap_CSpaceInterface_visibilityCost, METH_VARARGS, (char *)"CSpaceInterface_visibilityCost(CSpaceInterface self, char const * name) -> double"},
-	 { (char *)"CSpaceInterface_visibilityProbability", _wrap_CSpaceInterface_visibilityProbability, METH_VARARGS, (char *)"CSpaceInterface_visibilityProbability(CSpaceInterface self, char const * name) -> double"},
-	 { (char *)"CSpaceInterface_feasibilityQueryOrder", _wrap_CSpaceInterface_feasibilityQueryOrder, METH_VARARGS, (char *)"CSpaceInterface_feasibilityQueryOrder(CSpaceInterface self) -> PyObject *"},
-	 { (char *)"CSpaceInterface_visibilityQueryOrder", _wrap_CSpaceInterface_visibilityQueryOrder, METH_VARARGS, (char *)"CSpaceInterface_visibilityQueryOrder(CSpaceInterface self) -> PyObject *"},
+	 { (char *)"CSpaceInterface_feasibilityCost", _wrap_CSpaceInterface_feasibilityCost, METH_VARARGS, (char *)"\n"
+		"CSpaceInterface_feasibilityCost(CSpaceInterface self, char const * name) -> double\n"
+		"\n"
+		"Retrieves the empirical average cost of a given feasibility test. \n"
+		""},
+	 { (char *)"CSpaceInterface_feasibilityProbability", _wrap_CSpaceInterface_feasibilityProbability, METH_VARARGS, (char *)"\n"
+		"CSpaceInterface_feasibilityProbability(CSpaceInterface self, char const * name) -> double\n"
+		"\n"
+		"Retrieves the empirical average success rate of a given feasibility\n"
+		"test. \n"
+		""},
+	 { (char *)"CSpaceInterface_visibilityCost", _wrap_CSpaceInterface_visibilityCost, METH_VARARGS, (char *)"\n"
+		"CSpaceInterface_visibilityCost(CSpaceInterface self, char const * name) -> double\n"
+		"\n"
+		"Retrieves the empirical average cost of a given visibility test. \n"
+		""},
+	 { (char *)"CSpaceInterface_visibilityProbability", _wrap_CSpaceInterface_visibilityProbability, METH_VARARGS, (char *)"\n"
+		"CSpaceInterface_visibilityProbability(CSpaceInterface self, char const * name) -> double\n"
+		"\n"
+		"Retrieves the empirical average success rate of a given visibility\n"
+		"test. \n"
+		""},
+	 { (char *)"CSpaceInterface_feasibilityQueryOrder", _wrap_CSpaceInterface_feasibilityQueryOrder, METH_VARARGS, (char *)"\n"
+		"CSpaceInterface_feasibilityQueryOrder(CSpaceInterface self) -> PyObject *\n"
+		"\n"
+		"Retrieves the current order of feasibility tests. \n"
+		""},
+	 { (char *)"CSpaceInterface_visibilityQueryOrder", _wrap_CSpaceInterface_visibilityQueryOrder, METH_VARARGS, (char *)"\n"
+		"CSpaceInterface_visibilityQueryOrder(CSpaceInterface self) -> PyObject *\n"
+		"\n"
+		"Retrieves the current order of visibility tests. \n"
+		""},
 	 { (char *)"CSpaceInterface_index_set", _wrap_CSpaceInterface_index_set, METH_VARARGS, (char *)"CSpaceInterface_index_set(CSpaceInterface self, int index)"},
 	 { (char *)"CSpaceInterface_index_get", _wrap_CSpaceInterface_index_get, METH_VARARGS, (char *)"CSpaceInterface_index_get(CSpaceInterface self) -> int"},
 	 { (char *)"CSpaceInterface_swigregister", CSpaceInterface_swigregister, METH_VARARGS, NULL},

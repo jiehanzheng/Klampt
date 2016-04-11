@@ -190,6 +190,21 @@ void IKObjective::getTransform(double out[9],double out2[3]) const
     PyException("getTransform called on non-fixed transform");
   }
 }
+void IKObjective::transform(const double R[9],const double t[3])
+{
+  RigidTransform T;
+  T.R = Matrix3(R);
+  T.t = Vector3(t);
+  goal.Transform(T);
+}
+
+void IKObjective::transformLocal(const double R[9],const double t[3]) 
+{
+  RigidTransform T;
+  T.R = Matrix3(R);
+  T.t = Vector3(t);
+  goal.TransformLocal(T);
+}
 
 bool IKObjective::loadString(const char* str)
 {
@@ -205,6 +220,7 @@ std::string IKObjective::saveString() const
   ss<<goal;
   return ss.str();
 }
+
 
 GeneralizedIKObjective::GeneralizedIKObjective(const GeneralizedIKObjective& obj)
   :link1(obj.link1),link2(obj.link2),obj1(obj.obj1),obj2(obj.obj2),

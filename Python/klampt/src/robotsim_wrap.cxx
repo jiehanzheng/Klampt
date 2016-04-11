@@ -35901,6 +35901,108 @@ fail:
 }
 
 
+SWIGINTERN PyObject *_wrap_IKObjective_transform(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  IKObjective *arg1 = (IKObjective *) 0 ;
+  double *arg2 ;
+  double *arg3 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  double temp2[9] ;
+  double temp3[3] ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  PyObject * obj2 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OOO:IKObjective_transform",&obj0,&obj1,&obj2)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_IKObjective, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "IKObjective_transform" "', argument " "1"" of type '" "IKObjective *""'"); 
+  }
+  arg1 = reinterpret_cast< IKObjective * >(argp1);
+  {
+    if (!convert_darray(obj1,temp2,9)) {
+      return NULL;
+    }
+    arg2 = &temp2[0];
+  }
+  {
+    if (!convert_darray(obj2,temp3,3)) {
+      return NULL;
+    }
+    arg3 = &temp3[0];
+  }
+  {
+    try {
+      (arg1)->transform((double const (*))arg2,(double const (*))arg3);
+    }
+    catch(PyException& e) {
+      e.setPyErr();
+      return NULL;
+    }
+    catch(std::exception& e) {
+      PyErr_SetString(PyExc_RuntimeError, const_cast<char*>(e.what()));
+      return NULL;
+    }
+  }
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_IKObjective_transformLocal(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  IKObjective *arg1 = (IKObjective *) 0 ;
+  double *arg2 ;
+  double *arg3 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  double temp2[9] ;
+  double temp3[3] ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  PyObject * obj2 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OOO:IKObjective_transformLocal",&obj0,&obj1,&obj2)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_IKObjective, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "IKObjective_transformLocal" "', argument " "1"" of type '" "IKObjective *""'"); 
+  }
+  arg1 = reinterpret_cast< IKObjective * >(argp1);
+  {
+    if (!convert_darray(obj1,temp2,9)) {
+      return NULL;
+    }
+    arg2 = &temp2[0];
+  }
+  {
+    if (!convert_darray(obj2,temp3,3)) {
+      return NULL;
+    }
+    arg3 = &temp3[0];
+  }
+  {
+    try {
+      (arg1)->transformLocal((double const (*))arg2,(double const (*))arg3);
+    }
+    catch(PyException& e) {
+      e.setPyErr();
+      return NULL;
+    }
+    catch(std::exception& e) {
+      PyErr_SetString(PyExc_RuntimeError, const_cast<char*>(e.what()));
+      return NULL;
+    }
+  }
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
 SWIGINTERN PyObject *_wrap_IKObjective_loadString(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   IKObjective *arg1 = (IKObjective *) 0 ;
@@ -45708,6 +45810,518 @@ fail:
 }
 
 
+SWIGINTERN PyObject *_wrap_equilibriumTorques__SWIG_0(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  RobotModel *arg1 = 0 ;
+  std::vector< std::vector< double,std::allocator< double > >,std::allocator< std::vector< double,std::allocator< double > > > > *arg2 = 0 ;
+  std::vector< int,std::allocator< int > > *arg3 = 0 ;
+  std::vector< double,std::allocator< double > > *arg4 = 0 ;
+  double arg5 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int res2 = SWIG_OLDOBJ ;
+  int res3 = SWIG_OLDOBJ ;
+  int res4 = SWIG_OLDOBJ ;
+  double val5 ;
+  int ecode5 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  PyObject * obj2 = 0 ;
+  PyObject * obj3 = 0 ;
+  PyObject * obj4 = 0 ;
+  PyObject *result = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OOOOO:equilibriumTorques",&obj0,&obj1,&obj2,&obj3,&obj4)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1, SWIGTYPE_p_RobotModel,  0  | 0);
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "equilibriumTorques" "', argument " "1"" of type '" "RobotModel const &""'"); 
+  }
+  if (!argp1) {
+    SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "equilibriumTorques" "', argument " "1"" of type '" "RobotModel const &""'"); 
+  }
+  arg1 = reinterpret_cast< RobotModel * >(argp1);
+  {
+    std::vector<std::vector< double,std::allocator< double > >,std::allocator< std::vector< double,std::allocator< double > > > > *ptr = (std::vector<std::vector< double,std::allocator< double > >,std::allocator< std::vector< double,std::allocator< double > > > > *)0;
+    res2 = swig::asptr(obj1, &ptr);
+    if (!SWIG_IsOK(res2)) {
+      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "equilibriumTorques" "', argument " "2"" of type '" "std::vector< std::vector< double,std::allocator< double > >,std::allocator< std::vector< double,std::allocator< double > > > > const &""'"); 
+    }
+    if (!ptr) {
+      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "equilibriumTorques" "', argument " "2"" of type '" "std::vector< std::vector< double,std::allocator< double > >,std::allocator< std::vector< double,std::allocator< double > > > > const &""'"); 
+    }
+    arg2 = ptr;
+  }
+  {
+    std::vector<int,std::allocator< int > > *ptr = (std::vector<int,std::allocator< int > > *)0;
+    res3 = swig::asptr(obj2, &ptr);
+    if (!SWIG_IsOK(res3)) {
+      SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "equilibriumTorques" "', argument " "3"" of type '" "std::vector< int,std::allocator< int > > const &""'"); 
+    }
+    if (!ptr) {
+      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "equilibriumTorques" "', argument " "3"" of type '" "std::vector< int,std::allocator< int > > const &""'"); 
+    }
+    arg3 = ptr;
+  }
+  {
+    std::vector<double,std::allocator< double > > *ptr = (std::vector<double,std::allocator< double > > *)0;
+    res4 = swig::asptr(obj3, &ptr);
+    if (!SWIG_IsOK(res4)) {
+      SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "equilibriumTorques" "', argument " "4"" of type '" "std::vector< double,std::allocator< double > > const &""'"); 
+    }
+    if (!ptr) {
+      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "equilibriumTorques" "', argument " "4"" of type '" "std::vector< double,std::allocator< double > > const &""'"); 
+    }
+    arg4 = ptr;
+  }
+  ecode5 = SWIG_AsVal_double(obj4, &val5);
+  if (!SWIG_IsOK(ecode5)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode5), "in method '" "equilibriumTorques" "', argument " "5"" of type '" "double""'");
+  } 
+  arg5 = static_cast< double >(val5);
+  {
+    try {
+      result = (PyObject *)equilibriumTorques((RobotModel const &)*arg1,(std::vector< std::vector< double,std::allocator< double > >,std::allocator< std::vector< double,std::allocator< double > > > > const &)*arg2,(std::vector< int,std::allocator< int > > const &)*arg3,(std::vector< double,std::allocator< double > > const &)*arg4,arg5);
+    }
+    catch(PyException& e) {
+      e.setPyErr();
+      return NULL;
+    }
+    catch(std::exception& e) {
+      PyErr_SetString(PyExc_RuntimeError, const_cast<char*>(e.what()));
+      return NULL;
+    }
+  }
+  resultobj = result;
+  if (SWIG_IsNewObj(res2)) delete arg2;
+  if (SWIG_IsNewObj(res3)) delete arg3;
+  if (SWIG_IsNewObj(res4)) delete arg4;
+  return resultobj;
+fail:
+  if (SWIG_IsNewObj(res2)) delete arg2;
+  if (SWIG_IsNewObj(res3)) delete arg3;
+  if (SWIG_IsNewObj(res4)) delete arg4;
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_equilibriumTorques__SWIG_1(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  RobotModel *arg1 = 0 ;
+  std::vector< std::vector< double,std::allocator< double > >,std::allocator< std::vector< double,std::allocator< double > > > > *arg2 = 0 ;
+  std::vector< int,std::allocator< int > > *arg3 = 0 ;
+  std::vector< double,std::allocator< double > > *arg4 = 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int res2 = SWIG_OLDOBJ ;
+  int res3 = SWIG_OLDOBJ ;
+  int res4 = SWIG_OLDOBJ ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  PyObject * obj2 = 0 ;
+  PyObject * obj3 = 0 ;
+  PyObject *result = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OOOO:equilibriumTorques",&obj0,&obj1,&obj2,&obj3)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1, SWIGTYPE_p_RobotModel,  0  | 0);
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "equilibriumTorques" "', argument " "1"" of type '" "RobotModel const &""'"); 
+  }
+  if (!argp1) {
+    SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "equilibriumTorques" "', argument " "1"" of type '" "RobotModel const &""'"); 
+  }
+  arg1 = reinterpret_cast< RobotModel * >(argp1);
+  {
+    std::vector<std::vector< double,std::allocator< double > >,std::allocator< std::vector< double,std::allocator< double > > > > *ptr = (std::vector<std::vector< double,std::allocator< double > >,std::allocator< std::vector< double,std::allocator< double > > > > *)0;
+    res2 = swig::asptr(obj1, &ptr);
+    if (!SWIG_IsOK(res2)) {
+      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "equilibriumTorques" "', argument " "2"" of type '" "std::vector< std::vector< double,std::allocator< double > >,std::allocator< std::vector< double,std::allocator< double > > > > const &""'"); 
+    }
+    if (!ptr) {
+      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "equilibriumTorques" "', argument " "2"" of type '" "std::vector< std::vector< double,std::allocator< double > >,std::allocator< std::vector< double,std::allocator< double > > > > const &""'"); 
+    }
+    arg2 = ptr;
+  }
+  {
+    std::vector<int,std::allocator< int > > *ptr = (std::vector<int,std::allocator< int > > *)0;
+    res3 = swig::asptr(obj2, &ptr);
+    if (!SWIG_IsOK(res3)) {
+      SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "equilibriumTorques" "', argument " "3"" of type '" "std::vector< int,std::allocator< int > > const &""'"); 
+    }
+    if (!ptr) {
+      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "equilibriumTorques" "', argument " "3"" of type '" "std::vector< int,std::allocator< int > > const &""'"); 
+    }
+    arg3 = ptr;
+  }
+  {
+    std::vector<double,std::allocator< double > > *ptr = (std::vector<double,std::allocator< double > > *)0;
+    res4 = swig::asptr(obj3, &ptr);
+    if (!SWIG_IsOK(res4)) {
+      SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "equilibriumTorques" "', argument " "4"" of type '" "std::vector< double,std::allocator< double > > const &""'"); 
+    }
+    if (!ptr) {
+      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "equilibriumTorques" "', argument " "4"" of type '" "std::vector< double,std::allocator< double > > const &""'"); 
+    }
+    arg4 = ptr;
+  }
+  {
+    try {
+      result = (PyObject *)equilibriumTorques((RobotModel const &)*arg1,(std::vector< std::vector< double,std::allocator< double > >,std::allocator< std::vector< double,std::allocator< double > > > > const &)*arg2,(std::vector< int,std::allocator< int > > const &)*arg3,(std::vector< double,std::allocator< double > > const &)*arg4);
+    }
+    catch(PyException& e) {
+      e.setPyErr();
+      return NULL;
+    }
+    catch(std::exception& e) {
+      PyErr_SetString(PyExc_RuntimeError, const_cast<char*>(e.what()));
+      return NULL;
+    }
+  }
+  resultobj = result;
+  if (SWIG_IsNewObj(res2)) delete arg2;
+  if (SWIG_IsNewObj(res3)) delete arg3;
+  if (SWIG_IsNewObj(res4)) delete arg4;
+  return resultobj;
+fail:
+  if (SWIG_IsNewObj(res2)) delete arg2;
+  if (SWIG_IsNewObj(res3)) delete arg3;
+  if (SWIG_IsNewObj(res4)) delete arg4;
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_equilibriumTorques__SWIG_2(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  RobotModel *arg1 = 0 ;
+  std::vector< std::vector< double,std::allocator< double > >,std::allocator< std::vector< double,std::allocator< double > > > > *arg2 = 0 ;
+  std::vector< int,std::allocator< int > > *arg3 = 0 ;
+  std::vector< double,std::allocator< double > > *arg4 = 0 ;
+  std::vector< double,std::allocator< double > > *arg5 = 0 ;
+  double arg6 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int res2 = SWIG_OLDOBJ ;
+  int res3 = SWIG_OLDOBJ ;
+  int res4 = SWIG_OLDOBJ ;
+  int res5 = SWIG_OLDOBJ ;
+  double val6 ;
+  int ecode6 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  PyObject * obj2 = 0 ;
+  PyObject * obj3 = 0 ;
+  PyObject * obj4 = 0 ;
+  PyObject * obj5 = 0 ;
+  PyObject *result = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OOOOOO:equilibriumTorques",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1, SWIGTYPE_p_RobotModel,  0  | 0);
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "equilibriumTorques" "', argument " "1"" of type '" "RobotModel const &""'"); 
+  }
+  if (!argp1) {
+    SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "equilibriumTorques" "', argument " "1"" of type '" "RobotModel const &""'"); 
+  }
+  arg1 = reinterpret_cast< RobotModel * >(argp1);
+  {
+    std::vector<std::vector< double,std::allocator< double > >,std::allocator< std::vector< double,std::allocator< double > > > > *ptr = (std::vector<std::vector< double,std::allocator< double > >,std::allocator< std::vector< double,std::allocator< double > > > > *)0;
+    res2 = swig::asptr(obj1, &ptr);
+    if (!SWIG_IsOK(res2)) {
+      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "equilibriumTorques" "', argument " "2"" of type '" "std::vector< std::vector< double,std::allocator< double > >,std::allocator< std::vector< double,std::allocator< double > > > > const &""'"); 
+    }
+    if (!ptr) {
+      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "equilibriumTorques" "', argument " "2"" of type '" "std::vector< std::vector< double,std::allocator< double > >,std::allocator< std::vector< double,std::allocator< double > > > > const &""'"); 
+    }
+    arg2 = ptr;
+  }
+  {
+    std::vector<int,std::allocator< int > > *ptr = (std::vector<int,std::allocator< int > > *)0;
+    res3 = swig::asptr(obj2, &ptr);
+    if (!SWIG_IsOK(res3)) {
+      SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "equilibriumTorques" "', argument " "3"" of type '" "std::vector< int,std::allocator< int > > const &""'"); 
+    }
+    if (!ptr) {
+      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "equilibriumTorques" "', argument " "3"" of type '" "std::vector< int,std::allocator< int > > const &""'"); 
+    }
+    arg3 = ptr;
+  }
+  {
+    std::vector<double,std::allocator< double > > *ptr = (std::vector<double,std::allocator< double > > *)0;
+    res4 = swig::asptr(obj3, &ptr);
+    if (!SWIG_IsOK(res4)) {
+      SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "equilibriumTorques" "', argument " "4"" of type '" "std::vector< double,std::allocator< double > > const &""'"); 
+    }
+    if (!ptr) {
+      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "equilibriumTorques" "', argument " "4"" of type '" "std::vector< double,std::allocator< double > > const &""'"); 
+    }
+    arg4 = ptr;
+  }
+  {
+    std::vector<double,std::allocator< double > > *ptr = (std::vector<double,std::allocator< double > > *)0;
+    res5 = swig::asptr(obj4, &ptr);
+    if (!SWIG_IsOK(res5)) {
+      SWIG_exception_fail(SWIG_ArgError(res5), "in method '" "equilibriumTorques" "', argument " "5"" of type '" "std::vector< double,std::allocator< double > > const &""'"); 
+    }
+    if (!ptr) {
+      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "equilibriumTorques" "', argument " "5"" of type '" "std::vector< double,std::allocator< double > > const &""'"); 
+    }
+    arg5 = ptr;
+  }
+  ecode6 = SWIG_AsVal_double(obj5, &val6);
+  if (!SWIG_IsOK(ecode6)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode6), "in method '" "equilibriumTorques" "', argument " "6"" of type '" "double""'");
+  } 
+  arg6 = static_cast< double >(val6);
+  {
+    try {
+      result = (PyObject *)equilibriumTorques((RobotModel const &)*arg1,(std::vector< std::vector< double,std::allocator< double > >,std::allocator< std::vector< double,std::allocator< double > > > > const &)*arg2,(std::vector< int,std::allocator< int > > const &)*arg3,(std::vector< double,std::allocator< double > > const &)*arg4,(std::vector< double,std::allocator< double > > const &)*arg5,arg6);
+    }
+    catch(PyException& e) {
+      e.setPyErr();
+      return NULL;
+    }
+    catch(std::exception& e) {
+      PyErr_SetString(PyExc_RuntimeError, const_cast<char*>(e.what()));
+      return NULL;
+    }
+  }
+  resultobj = result;
+  if (SWIG_IsNewObj(res2)) delete arg2;
+  if (SWIG_IsNewObj(res3)) delete arg3;
+  if (SWIG_IsNewObj(res4)) delete arg4;
+  if (SWIG_IsNewObj(res5)) delete arg5;
+  return resultobj;
+fail:
+  if (SWIG_IsNewObj(res2)) delete arg2;
+  if (SWIG_IsNewObj(res3)) delete arg3;
+  if (SWIG_IsNewObj(res4)) delete arg4;
+  if (SWIG_IsNewObj(res5)) delete arg5;
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_equilibriumTorques__SWIG_3(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  RobotModel *arg1 = 0 ;
+  std::vector< std::vector< double,std::allocator< double > >,std::allocator< std::vector< double,std::allocator< double > > > > *arg2 = 0 ;
+  std::vector< int,std::allocator< int > > *arg3 = 0 ;
+  std::vector< double,std::allocator< double > > *arg4 = 0 ;
+  std::vector< double,std::allocator< double > > *arg5 = 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int res2 = SWIG_OLDOBJ ;
+  int res3 = SWIG_OLDOBJ ;
+  int res4 = SWIG_OLDOBJ ;
+  int res5 = SWIG_OLDOBJ ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  PyObject * obj2 = 0 ;
+  PyObject * obj3 = 0 ;
+  PyObject * obj4 = 0 ;
+  PyObject *result = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OOOOO:equilibriumTorques",&obj0,&obj1,&obj2,&obj3,&obj4)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1, SWIGTYPE_p_RobotModel,  0  | 0);
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "equilibriumTorques" "', argument " "1"" of type '" "RobotModel const &""'"); 
+  }
+  if (!argp1) {
+    SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "equilibriumTorques" "', argument " "1"" of type '" "RobotModel const &""'"); 
+  }
+  arg1 = reinterpret_cast< RobotModel * >(argp1);
+  {
+    std::vector<std::vector< double,std::allocator< double > >,std::allocator< std::vector< double,std::allocator< double > > > > *ptr = (std::vector<std::vector< double,std::allocator< double > >,std::allocator< std::vector< double,std::allocator< double > > > > *)0;
+    res2 = swig::asptr(obj1, &ptr);
+    if (!SWIG_IsOK(res2)) {
+      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "equilibriumTorques" "', argument " "2"" of type '" "std::vector< std::vector< double,std::allocator< double > >,std::allocator< std::vector< double,std::allocator< double > > > > const &""'"); 
+    }
+    if (!ptr) {
+      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "equilibriumTorques" "', argument " "2"" of type '" "std::vector< std::vector< double,std::allocator< double > >,std::allocator< std::vector< double,std::allocator< double > > > > const &""'"); 
+    }
+    arg2 = ptr;
+  }
+  {
+    std::vector<int,std::allocator< int > > *ptr = (std::vector<int,std::allocator< int > > *)0;
+    res3 = swig::asptr(obj2, &ptr);
+    if (!SWIG_IsOK(res3)) {
+      SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "equilibriumTorques" "', argument " "3"" of type '" "std::vector< int,std::allocator< int > > const &""'"); 
+    }
+    if (!ptr) {
+      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "equilibriumTorques" "', argument " "3"" of type '" "std::vector< int,std::allocator< int > > const &""'"); 
+    }
+    arg3 = ptr;
+  }
+  {
+    std::vector<double,std::allocator< double > > *ptr = (std::vector<double,std::allocator< double > > *)0;
+    res4 = swig::asptr(obj3, &ptr);
+    if (!SWIG_IsOK(res4)) {
+      SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "equilibriumTorques" "', argument " "4"" of type '" "std::vector< double,std::allocator< double > > const &""'"); 
+    }
+    if (!ptr) {
+      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "equilibriumTorques" "', argument " "4"" of type '" "std::vector< double,std::allocator< double > > const &""'"); 
+    }
+    arg4 = ptr;
+  }
+  {
+    std::vector<double,std::allocator< double > > *ptr = (std::vector<double,std::allocator< double > > *)0;
+    res5 = swig::asptr(obj4, &ptr);
+    if (!SWIG_IsOK(res5)) {
+      SWIG_exception_fail(SWIG_ArgError(res5), "in method '" "equilibriumTorques" "', argument " "5"" of type '" "std::vector< double,std::allocator< double > > const &""'"); 
+    }
+    if (!ptr) {
+      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "equilibriumTorques" "', argument " "5"" of type '" "std::vector< double,std::allocator< double > > const &""'"); 
+    }
+    arg5 = ptr;
+  }
+  {
+    try {
+      result = (PyObject *)equilibriumTorques((RobotModel const &)*arg1,(std::vector< std::vector< double,std::allocator< double > >,std::allocator< std::vector< double,std::allocator< double > > > > const &)*arg2,(std::vector< int,std::allocator< int > > const &)*arg3,(std::vector< double,std::allocator< double > > const &)*arg4,(std::vector< double,std::allocator< double > > const &)*arg5);
+    }
+    catch(PyException& e) {
+      e.setPyErr();
+      return NULL;
+    }
+    catch(std::exception& e) {
+      PyErr_SetString(PyExc_RuntimeError, const_cast<char*>(e.what()));
+      return NULL;
+    }
+  }
+  resultobj = result;
+  if (SWIG_IsNewObj(res2)) delete arg2;
+  if (SWIG_IsNewObj(res3)) delete arg3;
+  if (SWIG_IsNewObj(res4)) delete arg4;
+  if (SWIG_IsNewObj(res5)) delete arg5;
+  return resultobj;
+fail:
+  if (SWIG_IsNewObj(res2)) delete arg2;
+  if (SWIG_IsNewObj(res3)) delete arg3;
+  if (SWIG_IsNewObj(res4)) delete arg4;
+  if (SWIG_IsNewObj(res5)) delete arg5;
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_equilibriumTorques(PyObject *self, PyObject *args) {
+  int argc;
+  PyObject *argv[7];
+  int ii;
+  
+  if (!PyTuple_Check(args)) SWIG_fail;
+  argc = args ? (int)PyObject_Length(args) : 0;
+  for (ii = 0; (ii < 6) && (ii < argc); ii++) {
+    argv[ii] = PyTuple_GET_ITEM(args,ii);
+  }
+  if (argc == 4) {
+    int _v;
+    int res = SWIG_ConvertPtr(argv[0], 0, SWIGTYPE_p_RobotModel, 0);
+    _v = SWIG_CheckState(res);
+    if (_v) {
+      int res = swig::asptr(argv[1], (std::vector<std::vector< double,std::allocator< double > >,std::allocator< std::vector< double,std::allocator< double > > > >**)(0));
+      _v = SWIG_CheckState(res);
+      if (_v) {
+        int res = swig::asptr(argv[2], (std::vector<int,std::allocator< int > >**)(0));
+        _v = SWIG_CheckState(res);
+        if (_v) {
+          int res = swig::asptr(argv[3], (std::vector<double,std::allocator< double > >**)(0));
+          _v = SWIG_CheckState(res);
+          if (_v) {
+            return _wrap_equilibriumTorques__SWIG_1(self, args);
+          }
+        }
+      }
+    }
+  }
+  if (argc == 5) {
+    int _v;
+    int res = SWIG_ConvertPtr(argv[0], 0, SWIGTYPE_p_RobotModel, 0);
+    _v = SWIG_CheckState(res);
+    if (_v) {
+      int res = swig::asptr(argv[1], (std::vector<std::vector< double,std::allocator< double > >,std::allocator< std::vector< double,std::allocator< double > > > >**)(0));
+      _v = SWIG_CheckState(res);
+      if (_v) {
+        int res = swig::asptr(argv[2], (std::vector<int,std::allocator< int > >**)(0));
+        _v = SWIG_CheckState(res);
+        if (_v) {
+          int res = swig::asptr(argv[3], (std::vector<double,std::allocator< double > >**)(0));
+          _v = SWIG_CheckState(res);
+          if (_v) {
+            {
+              int res = SWIG_AsVal_double(argv[4], NULL);
+              _v = SWIG_CheckState(res);
+            }
+            if (_v) {
+              return _wrap_equilibriumTorques__SWIG_0(self, args);
+            }
+          }
+        }
+      }
+    }
+  }
+  if (argc == 5) {
+    int _v;
+    int res = SWIG_ConvertPtr(argv[0], 0, SWIGTYPE_p_RobotModel, 0);
+    _v = SWIG_CheckState(res);
+    if (_v) {
+      int res = swig::asptr(argv[1], (std::vector<std::vector< double,std::allocator< double > >,std::allocator< std::vector< double,std::allocator< double > > > >**)(0));
+      _v = SWIG_CheckState(res);
+      if (_v) {
+        int res = swig::asptr(argv[2], (std::vector<int,std::allocator< int > >**)(0));
+        _v = SWIG_CheckState(res);
+        if (_v) {
+          int res = swig::asptr(argv[3], (std::vector<double,std::allocator< double > >**)(0));
+          _v = SWIG_CheckState(res);
+          if (_v) {
+            int res = swig::asptr(argv[4], (std::vector<double,std::allocator< double > >**)(0));
+            _v = SWIG_CheckState(res);
+            if (_v) {
+              return _wrap_equilibriumTorques__SWIG_3(self, args);
+            }
+          }
+        }
+      }
+    }
+  }
+  if (argc == 6) {
+    int _v;
+    int res = SWIG_ConvertPtr(argv[0], 0, SWIGTYPE_p_RobotModel, 0);
+    _v = SWIG_CheckState(res);
+    if (_v) {
+      int res = swig::asptr(argv[1], (std::vector<std::vector< double,std::allocator< double > >,std::allocator< std::vector< double,std::allocator< double > > > >**)(0));
+      _v = SWIG_CheckState(res);
+      if (_v) {
+        int res = swig::asptr(argv[2], (std::vector<int,std::allocator< int > >**)(0));
+        _v = SWIG_CheckState(res);
+        if (_v) {
+          int res = swig::asptr(argv[3], (std::vector<double,std::allocator< double > >**)(0));
+          _v = SWIG_CheckState(res);
+          if (_v) {
+            int res = swig::asptr(argv[4], (std::vector<double,std::allocator< double > >**)(0));
+            _v = SWIG_CheckState(res);
+            if (_v) {
+              {
+                int res = SWIG_AsVal_double(argv[5], NULL);
+                _v = SWIG_CheckState(res);
+              }
+              if (_v) {
+                return _wrap_equilibriumTorques__SWIG_2(self, args);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  
+fail:
+  SWIG_SetErrorMsg(PyExc_NotImplementedError,"Wrong number or type of arguments for overloaded function 'equilibriumTorques'.\n"
+    "  Possible C/C++ prototypes are:\n"
+    "    equilibriumTorques(RobotModel const &,std::vector< std::vector< double,std::allocator< double > >,std::allocator< std::vector< double,std::allocator< double > > > > const &,std::vector< int,std::allocator< int > > const &,std::vector< double,std::allocator< double > > const &,double)\n"
+    "    equilibriumTorques(RobotModel const &,std::vector< std::vector< double,std::allocator< double > >,std::allocator< std::vector< double,std::allocator< double > > > > const &,std::vector< int,std::allocator< int > > const &,std::vector< double,std::allocator< double > > const &)\n"
+    "    equilibriumTorques(RobotModel const &,std::vector< std::vector< double,std::allocator< double > >,std::allocator< std::vector< double,std::allocator< double > > > > const &,std::vector< int,std::allocator< int > > const &,std::vector< double,std::allocator< double > > const &,std::vector< double,std::allocator< double > > const &,double)\n"
+    "    equilibriumTorques(RobotModel const &,std::vector< std::vector< double,std::allocator< double > >,std::allocator< std::vector< double,std::allocator< double > > > > const &,std::vector< int,std::allocator< int > > const &,std::vector< double,std::allocator< double > > const &,std::vector< double,std::allocator< double > > const &)\n");
+  return 0;
+}
+
+
 static PyMethodDef SwigMethods[] = {
 	 { (char *)"SWIG_PyInstanceMethod_New", (PyCFunction)SWIG_PyInstanceMethod_New, METH_O, NULL},
 	 { (char *)"delete_SwigPyIterator", _wrap_delete_SwigPyIterator, METH_VARARGS, NULL},
@@ -46405,7 +47019,11 @@ static PyMethodDef SwigMethods[] = {
 		"Returns the ID of the robot link in its world (Note: not the same as\n"
 		"getIndex()) \n"
 		""},
-	 { (char *)"RobotModelLink_getName", _wrap_RobotModelLink_getName, METH_VARARGS, (char *)"RobotModelLink_getName(RobotModelLink self) -> char const *"},
+	 { (char *)"RobotModelLink_getName", _wrap_RobotModelLink_getName, METH_VARARGS, (char *)"\n"
+		"RobotModelLink_getName(RobotModelLink self) -> char const *\n"
+		"\n"
+		"Returns the name of the robot link. \n"
+		""},
 	 { (char *)"RobotModelLink_robot", _wrap_RobotModelLink_robot, METH_VARARGS, (char *)"\n"
 		"RobotModelLink_robot(RobotModelLink self) -> RobotModel\n"
 		"\n"
@@ -46426,12 +47044,17 @@ static PyMethodDef SwigMethods[] = {
 		"\n"
 		"Returns the index of the link's parent (on its robot). \n"
 		""},
-	 { (char *)"RobotModelLink_parent", _wrap_RobotModelLink_parent, METH_VARARGS, (char *)"RobotModelLink_parent(RobotModelLink self) -> RobotModelLink"},
+	 { (char *)"RobotModelLink_parent", _wrap_RobotModelLink_parent, METH_VARARGS, (char *)"\n"
+		"RobotModelLink_parent(RobotModelLink self) -> RobotModelLink\n"
+		"\n"
+		"Returns a reference to the link's parent, or a NULL link if it has no\n"
+		"parent. \n"
+		""},
 	 { (char *)"RobotModelLink_setParent", _wrap_RobotModelLink_setParent, METH_VARARGS, (char *)"\n"
 		"setParent(int p)\n"
 		"RobotModelLink_setParent(RobotModelLink self, RobotModelLink l)\n"
 		"\n"
-		"Sets the index of the link's parent (on its robot). \n"
+		"Sets the link's parent (must be on the same robot). \n"
 		""},
 	 { (char *)"RobotModelLink_geometry", _wrap_RobotModelLink_geometry, METH_VARARGS, (char *)"\n"
 		"RobotModelLink_geometry(RobotModelLink self) -> Geometry3D\n"
@@ -46780,7 +47403,10 @@ static PyMethodDef SwigMethods[] = {
 		"RobotModel_drawGL(RobotModel self)\n"
 		"\n"
 		"Draws the robot geometry. If keepAppearance=true, the current\n"
-		"appearance is honored. Otherwise, only the raw geometry is drawn. \n"
+		"appearance is honored. Otherwise, only the raw geometry is drawn.\n"
+		"PERFORMANCE WARNING: if keepAppearance is false, then this does not\n"
+		"properly reuse OpenGL display lists. A better approach to changing the\n"
+		"robot's appearances is to set the link Appearance's directly. \n"
 		""},
 	 { (char *)"RobotModel_world_set", _wrap_RobotModel_world_set, METH_VARARGS, (char *)"RobotModel_world_set(RobotModel self, int world)"},
 	 { (char *)"RobotModel_world_get", _wrap_RobotModel_world_get, METH_VARARGS, (char *)"RobotModel_world_get(RobotModel self) -> int"},
@@ -46804,6 +47430,12 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"RigidObjectModel_drawGL", _wrap_RigidObjectModel_drawGL, METH_VARARGS, (char *)"\n"
 		"drawGL(bool keepAppearance=True)\n"
 		"RigidObjectModel_drawGL(RigidObjectModel self)\n"
+		"\n"
+		"Draws the object's geometry. If keepAppearance=true, the current\n"
+		"appearance is honored. Otherwise, only the raw geometry is drawn.\n"
+		"PERFORMANCE WARNING: if keepAppearance is false, then this does not\n"
+		"properly reuse OpenGL display lists. A better approach to changing\n"
+		"object's Appearance directly. \n"
 		""},
 	 { (char *)"RigidObjectModel_world_set", _wrap_RigidObjectModel_world_set, METH_VARARGS, (char *)"RigidObjectModel_world_set(RigidObjectModel self, int world)"},
 	 { (char *)"RigidObjectModel_world_get", _wrap_RigidObjectModel_world_get, METH_VARARGS, (char *)"RigidObjectModel_world_get(RigidObjectModel self) -> int"},
@@ -46822,6 +47454,12 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"TerrainModel_drawGL", _wrap_TerrainModel_drawGL, METH_VARARGS, (char *)"\n"
 		"drawGL(bool keepAppearance=True)\n"
 		"TerrainModel_drawGL(TerrainModel self)\n"
+		"\n"
+		"Draws the object's geometry. If keepAppearance=true, the current\n"
+		"appearance is honored. Otherwise, only the raw geometry is drawn.\n"
+		"PERFORMANCE WARNING: if keepAppearance is false, then this does not\n"
+		"properly reuse OpenGL display lists. A better approach to changing\n"
+		"object's Appearance directly. \n"
 		""},
 	 { (char *)"TerrainModel_world_set", _wrap_TerrainModel_world_set, METH_VARARGS, (char *)"TerrainModel_world_set(TerrainModel self, int world)"},
 	 { (char *)"TerrainModel_world_get", _wrap_TerrainModel_world_get, METH_VARARGS, (char *)"TerrainModel_world_get(TerrainModel self) -> int"},
@@ -46945,7 +47583,7 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"WorldModel_drawGL", _wrap_WorldModel_drawGL, METH_VARARGS, (char *)"\n"
 		"WorldModel_drawGL(WorldModel self)\n"
 		"\n"
-		"Draws the entire world. \n"
+		"Draws the entire world using OpenGL. \n"
 		""},
 	 { (char *)"WorldModel_enableGeometryLoading", _wrap_WorldModel_enableGeometryLoading, METH_VARARGS, (char *)"\n"
 		"WorldModel_enableGeometryLoading(WorldModel self, bool enabled)\n"
@@ -47086,7 +47724,19 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"IKObjective_getTransform", _wrap_IKObjective_getTransform, METH_VARARGS, (char *)"\n"
 		"IKObjective_getTransform(IKObjective self)\n"
 		"\n"
-		"For fixed-transform constraints, returns the transform (R,T) \n"
+		"For fixed-transform constraints, returns the transform (R,t) \n"
+		""},
+	 { (char *)"IKObjective_transform", _wrap_IKObjective_transform, METH_VARARGS, (char *)"\n"
+		"IKObjective_transform(IKObjective self, double const [9] R, double const [3] t)\n"
+		"\n"
+		"Tranforms the target position/rotation of this IK constraint by\n"
+		"transform (R,t) \n"
+		""},
+	 { (char *)"IKObjective_transformLocal", _wrap_IKObjective_transformLocal, METH_VARARGS, (char *)"\n"
+		"IKObjective_transformLocal(IKObjective self, double const [9] R, double const [3] t)\n"
+		"\n"
+		"Tranforms the local position/rotation of this IK constraint by\n"
+		"transform (R,t) \n"
 		""},
 	 { (char *)"IKObjective_loadString", _wrap_IKObjective_loadString, METH_VARARGS, (char *)"\n"
 		"IKObjective_loadString(IKObjective self, char const * str) -> bool\n"
@@ -47256,7 +47906,11 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"SimRobotSensor_swigregister", SimRobotSensor_swigregister, METH_VARARGS, NULL},
 	 { (char *)"new_SimRobotController", _wrap_new_SimRobotController, METH_VARARGS, (char *)"new_SimRobotController() -> SimRobotController"},
 	 { (char *)"delete_SimRobotController", _wrap_delete_SimRobotController, METH_VARARGS, (char *)"delete_SimRobotController(SimRobotController self)"},
-	 { (char *)"SimRobotController_model", _wrap_SimRobotController_model, METH_VARARGS, (char *)"SimRobotController_model(SimRobotController self) -> RobotModel"},
+	 { (char *)"SimRobotController_model", _wrap_SimRobotController_model, METH_VARARGS, (char *)"\n"
+		"SimRobotController_model(SimRobotController self) -> RobotModel\n"
+		"\n"
+		"Retrieves the robot model associated with this controller. \n"
+		""},
 	 { (char *)"SimRobotController_setRate", _wrap_SimRobotController_setRate, METH_VARARGS, (char *)"\n"
 		"SimRobotController_setRate(SimRobotController self, double dt)\n"
 		"\n"
@@ -47430,20 +48084,20 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"SimBody_applyWrench", _wrap_SimBody_applyWrench, METH_VARARGS, (char *)"\n"
 		"SimBody_applyWrench(SimBody self, double const [3] f, double const [3] t)\n"
 		"\n"
-		"Applies a force and torque about the COM at the current simulation\n"
-		"time step. \n"
+		"Applies a force and torque about the COM over the duration of the next\n"
+		"Simulator.simulate(t) call. \n"
 		""},
 	 { (char *)"SimBody_applyForceAtPoint", _wrap_SimBody_applyForceAtPoint, METH_VARARGS, (char *)"\n"
 		"SimBody_applyForceAtPoint(SimBody self, double const [3] f, double const [3] pworld)\n"
 		"\n"
-		"Applies a force at a given point (in world coordinates) at the current\n"
-		"simulation time step. \n"
+		"Applies a force at a given point (in world coordinates) over the\n"
+		"duration of the next Simulator.simulate(t) call. \n"
 		""},
 	 { (char *)"SimBody_applyForceAtLocalPoint", _wrap_SimBody_applyForceAtLocalPoint, METH_VARARGS, (char *)"\n"
 		"SimBody_applyForceAtLocalPoint(SimBody self, double const [3] f, double const [3] plocal)\n"
 		"\n"
-		"Applies a force at a given point (in local coordinates) at the current\n"
-		"simulation time step. \n"
+		"Applies a force at a given point (in local coordinates) over the\n"
+		"duration of the next Simulator.simulate(t) call. \n"
 		""},
 	 { (char *)"SimBody_setTransform", _wrap_SimBody_setTransform, METH_VARARGS, (char *)"\n"
 		"SimBody_setTransform(SimBody self, double const [9] R, double const [3] t)\n"
@@ -47580,7 +48234,10 @@ static PyMethodDef SwigMethods[] = {
 		"\n"
 		"Call this to enable contact feedback between the two objects\n"
 		"(arguments are indexes returned by object.getID()). Contact feedback\n"
-		"has a small overhead so you may want to do this selectively. \n"
+		"has a small overhead so you may want to do this selectively. This must\n"
+		"be called before using inContact, getContacts, getContactForces,\n"
+		"contactForce, contactTorque, hadContact, hadSeparation,\n"
+		"hadPenetration, and meanContactForce. \n"
 		""},
 	 { (char *)"Simulator_enableContactFeedbackAll", _wrap_Simulator_enableContactFeedbackAll, METH_VARARGS, (char *)"\n"
 		"Simulator_enableContactFeedbackAll(Simulator self)\n"
@@ -47593,13 +48250,15 @@ static PyMethodDef SwigMethods[] = {
 		"Simulator_inContact(Simulator self, int aid, int bid) -> bool\n"
 		"\n"
 		"Returns true if the objects (indexes returned by object.getID()) are\n"
-		"in contact on the current time step. \n"
+		"in contact on the current time step. You can set bid=-1 to tell if\n"
+		"object a is in contact with any object. \n"
 		""},
 	 { (char *)"Simulator_getContacts", _wrap_Simulator_getContacts, METH_VARARGS, (char *)"\n"
 		"Simulator_getContacts(Simulator self, int aid, int bid)\n"
 		"\n"
 		"Returns the list of contacts (x,n,kFriction) at the last time step.\n"
-		"Normals point into object a. \n"
+		"Normals point into object a. The contact point (x,n,kFriction) is\n"
+		"represented as a 7-element vector. \n"
 		""},
 	 { (char *)"Simulator_getContactForces", _wrap_Simulator_getContactForces, METH_VARARGS, (char *)"\n"
 		"Simulator_getContactForces(Simulator self, int aid, int bid)\n"
@@ -47610,27 +48269,40 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"Simulator_contactForce", _wrap_Simulator_contactForce, METH_VARARGS, (char *)"\n"
 		"Simulator_contactForce(Simulator self, int aid, int bid)\n"
 		"\n"
-		"Returns the contact force on object a at the last time step. \n"
+		"Returns the contact force on object a at the last time step. You can\n"
+		"set bid to -1 to get the overall contact force on object a. \n"
 		""},
 	 { (char *)"Simulator_contactTorque", _wrap_Simulator_contactTorque, METH_VARARGS, (char *)"\n"
 		"Simulator_contactTorque(Simulator self, int aid, int bid)\n"
 		"\n"
 		"Returns the contact force on object a (about a's origin) at the last\n"
-		"time step. \n"
+		"time step. You can set bid to -1 to get the overall contact force on\n"
+		"object a. \n"
 		""},
 	 { (char *)"Simulator_hadContact", _wrap_Simulator_hadContact, METH_VARARGS, (char *)"\n"
 		"Simulator_hadContact(Simulator self, int aid, int bid) -> bool\n"
 		"\n"
 		"Returns true if the objects had contact over the last simulate() call.\n"
-		"\n"
+		"You can set bid to -1 to determine if object a had contact with any\n"
+		"other object. \n"
 		""},
 	 { (char *)"Simulator_hadSeparation", _wrap_Simulator_hadSeparation, METH_VARARGS, (char *)"\n"
 		"Simulator_hadSeparation(Simulator self, int aid, int bid) -> bool\n"
 		"\n"
 		"Returns true if the objects had ever separated during the last\n"
-		"simulate() call. \n"
+		"simulate() call. You can set bid to -1 to determine if object a had no\n"
+		"contact with any other object. \n"
 		""},
-	 { (char *)"Simulator_hadPenetration", _wrap_Simulator_hadPenetration, METH_VARARGS, (char *)"Simulator_hadPenetration(Simulator self, int aid, int bid) -> bool"},
+	 { (char *)"Simulator_hadPenetration", _wrap_Simulator_hadPenetration, METH_VARARGS, (char *)"\n"
+		"Simulator_hadPenetration(Simulator self, int aid, int bid) -> bool\n"
+		"\n"
+		"Returns true if the objects interpenetrated during the last simulate()\n"
+		"call. If so, the simulation may lead to very inaccurate results or\n"
+		"artifacts. You can set bid to -1 to determine if object a penetrated\n"
+		"any object, or you can set aid=bid=-1 to determine whether any object\n"
+		"is penetrating any other (indicating that the simulation will not be\n"
+		"functioning properly in general). \n"
+		""},
 	 { (char *)"Simulator_meanContactForce", _wrap_Simulator_meanContactForce, METH_VARARGS, (char *)"\n"
 		"Simulator_meanContactForce(Simulator self, int aid, int bid)\n"
 		"\n"
@@ -47708,10 +48380,30 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"supportPolygon", _wrap_supportPolygon, METH_VARARGS, (char *)"\n"
 		"supportPolygon(doubleMatrix contacts) -> PyObject\n"
 		"supportPolygon(doubleMatrix contactPositions, doubleMatrix frictionCones) -> PyObject *\n"
+		"\n"
+		"A fancy version of the normal supportPolygon test. contactPositions is\n"
+		"a list of 3-lists giving the contact point positions. The i'th element\n"
+		"in the list frictionCones has length (k*4), and gives the contact\n"
+		"force constraints (ax,ay,az,b) where ax*fx+ay*fy+az*fz <= b limits the\n"
+		"contact force (fx,fy,fz) at the i'th contact. Each of the k 4-tuples\n"
+		"is laid out sequentially per-contact.\n"
+		"\n"
+		"The return value is a list of 3-tuples giving the sorted plane\n"
+		"boundaries of the polygon. The format of a plane is (nx,ny,ofs) where\n"
+		"(nx,ny) are the outward facing normals, and ofs is the offset from 0.\n"
+		"In other words to test stability of a com [x,y], you can test whether\n"
+		"dot([nx,ny],[x,y]) <= ofs for all planes. \n"
 		""},
 	 { (char *)"supportPolygon2D", _wrap_supportPolygon2D, METH_VARARGS, (char *)"\n"
 		"supportPolygon2D(doubleMatrix contacts) -> PyObject\n"
 		"supportPolygon2D(doubleMatrix contacts, doubleMatrix frictionCones) -> PyObject *\n"
+		""},
+	 { (char *)"equilibriumTorques", _wrap_equilibriumTorques, METH_VARARGS, (char *)"\n"
+		"equilibriumTorques(RobotModel robot, doubleMatrix contacts, intVector links, doubleVector fext, double norm=0) -> PyObject\n"
+		"equilibriumTorques(RobotModel robot, doubleMatrix contacts, intVector links, doubleVector fext) -> PyObject\n"
+		"equilibriumTorques(RobotModel robot, doubleMatrix contacts, intVector links, doubleVector fext, doubleVector internalTorques, \n"
+		"    double norm=0) -> PyObject\n"
+		"equilibriumTorques(RobotModel robot, doubleMatrix contacts, intVector links, doubleVector fext, doubleVector internalTorques) -> PyObject *\n"
 		""},
 	 { NULL, NULL, 0, NULL }
 };

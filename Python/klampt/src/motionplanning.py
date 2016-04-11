@@ -199,8 +199,9 @@ class CSpaceInterface(_object):
     that returns true regardless of its arguments).
 
     Supported properties include "euclidean" (boolean), "metric"
-    (string), "geodesic" (boolean). These may be used by planners to
-    make planning faster or more accurate. For a more complete list see
+    (string), "geodesic" (boolean), "minimum" (vector), and
+    "maximum" (vector). These may be used by planners to make planning
+    faster or more accurate. For a complete list see
     KrisLibrary/planning/CSpace.h.
 
     C++ includes: motionplanning.h 
@@ -272,59 +273,112 @@ class CSpaceInterface(_object):
         """
         isFeasible(CSpaceInterface self, PyObject * q) -> bool
 
+        Queries whether a given configuration is feasible.
+
         queries 
         """
         return _motionplanning.CSpaceInterface_isFeasible(self, *args)
 
     def isVisible(self, *args):
-        """isVisible(CSpaceInterface self, PyObject * a, PyObject * b) -> bool"""
+        """
+        isVisible(CSpaceInterface self, PyObject * a, PyObject * b) -> bool
+
+        Queries whether two configurations are visible. 
+        """
         return _motionplanning.CSpaceInterface_isVisible(self, *args)
 
     def testFeasibility(self, *args):
-        """testFeasibility(CSpaceInterface self, char const * name, PyObject * q) -> bool"""
+        """
+        testFeasibility(CSpaceInterface self, char const * name, PyObject * q) -> bool
+
+        Queries whether a given configuration is feasible with respect to a
+        given constraint. 
+        """
         return _motionplanning.CSpaceInterface_testFeasibility(self, *args)
 
     def testVisibility(self, *args):
-        """testVisibility(CSpaceInterface self, char const * name, PyObject * a, PyObject * b) -> bool"""
+        """
+        testVisibility(CSpaceInterface self, char const * name, PyObject * a, PyObject * b) -> bool
+
+        Queries whether two configurations are visible with respect to a given
+        constraint. 
+        """
         return _motionplanning.CSpaceInterface_testVisibility(self, *args)
 
     def feasibilityFailures(self, *args):
-        """feasibilityFailures(CSpaceInterface self, PyObject * q) -> PyObject *"""
+        """
+        feasibilityFailures(CSpaceInterface self, PyObject * q) -> PyObject *
+
+        Returns a list of all failed feasibility constraints. 
+        """
         return _motionplanning.CSpaceInterface_feasibilityFailures(self, *args)
 
     def visibilityFailures(self, *args):
-        """visibilityFailures(CSpaceInterface self, PyObject * a, PyObject * b) -> PyObject *"""
+        """
+        visibilityFailures(CSpaceInterface self, PyObject * a, PyObject * b) -> PyObject *
+
+        Returns a list of all failed visibility constraints. 
+        """
         return _motionplanning.CSpaceInterface_visibilityFailures(self, *args)
 
     def sample(self):
-        """sample(CSpaceInterface self) -> PyObject *"""
+        """
+        sample(CSpaceInterface self) -> PyObject *
+
+        Samples a configuration. 
+        """
         return _motionplanning.CSpaceInterface_sample(self)
 
     def distance(self, *args):
-        """distance(CSpaceInterface self, PyObject * a, PyObject * b) -> double"""
+        """
+        distance(CSpaceInterface self, PyObject * a, PyObject * b) -> double
+
+        Returns the distance between two configurations. 
+        """
         return _motionplanning.CSpaceInterface_distance(self, *args)
 
     def interpolate(self, *args):
-        """interpolate(CSpaceInterface self, PyObject * a, PyObject * b, double u) -> PyObject *"""
+        """
+        interpolate(CSpaceInterface self, PyObject * a, PyObject * b, double u) -> PyObject *
+
+        Interpolates between two configurations. 
+        """
         return _motionplanning.CSpaceInterface_interpolate(self, *args)
 
     def adaptiveQueriesEnabled(self):
-        """adaptiveQueriesEnabled(CSpaceInterface self) -> bool"""
+        """
+        adaptiveQueriesEnabled(CSpaceInterface self) -> bool
+
+        optional: adaptive queries can be used to automatically minimize the
+        total cost of testing feasibility / visibility using empirical
+        estimates. Off by default. 
+        """
         return _motionplanning.CSpaceInterface_adaptiveQueriesEnabled(self)
 
     def enableAdaptiveQueries(self, enabled=True):
         """
         enableAdaptiveQueries(CSpaceInterface self, bool enabled=True)
         enableAdaptiveQueries(CSpaceInterface self)
+
+        Call this to enable adaptive queries. (It has a small overhead.) 
         """
         return _motionplanning.CSpaceInterface_enableAdaptiveQueries(self, enabled)
 
     def optimizeQueryOrder(self):
-        """optimizeQueryOrder(CSpaceInterface self)"""
+        """
+        optimizeQueryOrder(CSpaceInterface self)
+
+        Call this to optimize the feasibility / visibility testing order. 
+        """
         return _motionplanning.CSpaceInterface_optimizeQueryOrder(self)
 
     def setFeasibilityDependency(self, *args):
-        """setFeasibilityDependency(CSpaceInterface self, char const * name, char const * precedingTest)"""
+        """
+        setFeasibilityDependency(CSpaceInterface self, char const * name, char const * precedingTest)
+
+        Marks that a certain feasibility test must be performed before
+        another. 
+        """
         return _motionplanning.CSpaceInterface_setFeasibilityDependency(self, *args)
 
     def setFeasibilityPrior(self, *args):
@@ -333,11 +387,19 @@ class CSpaceInterface(_object):
         setFeasibilityPrior(CSpaceInterface self, char const * name, double costPrior=0.0, double feasibilityProbability=0.0)
         setFeasibilityPrior(CSpaceInterface self, char const * name, double costPrior=0.0)
         setFeasibilityPrior(CSpaceInterface self, char const * name)
+
+        Resets the data for a certain feasibility test. Default values give a
+        data-gathering behavior. 
         """
         return _motionplanning.CSpaceInterface_setFeasibilityPrior(self, *args)
 
     def setVisibilityDependency(self, *args):
-        """setVisibilityDependency(CSpaceInterface self, char const * name, char const * precedingTest)"""
+        """
+        setVisibilityDependency(CSpaceInterface self, char const * name, char const * precedingTest)
+
+        Marks that a certain feasibility test must be performed before
+        another. 
+        """
         return _motionplanning.CSpaceInterface_setVisibilityDependency(self, *args)
 
     def setVisibilityPrior(self, *args):
@@ -346,31 +408,60 @@ class CSpaceInterface(_object):
         setVisibilityPrior(CSpaceInterface self, char const * name, double costPrior=0.0, double visibilityProbability=0.0)
         setVisibilityPrior(CSpaceInterface self, char const * name, double costPrior=0.0)
         setVisibilityPrior(CSpaceInterface self, char const * name)
+
+        Resets the data for a certain visibility test. Default values give a
+        data-gathering behavior. 
         """
         return _motionplanning.CSpaceInterface_setVisibilityPrior(self, *args)
 
     def feasibilityCost(self, *args):
-        """feasibilityCost(CSpaceInterface self, char const * name) -> double"""
+        """
+        feasibilityCost(CSpaceInterface self, char const * name) -> double
+
+        Retrieves the empirical average cost of a given feasibility test. 
+        """
         return _motionplanning.CSpaceInterface_feasibilityCost(self, *args)
 
     def feasibilityProbability(self, *args):
-        """feasibilityProbability(CSpaceInterface self, char const * name) -> double"""
+        """
+        feasibilityProbability(CSpaceInterface self, char const * name) -> double
+
+        Retrieves the empirical average success rate of a given feasibility
+        test. 
+        """
         return _motionplanning.CSpaceInterface_feasibilityProbability(self, *args)
 
     def visibilityCost(self, *args):
-        """visibilityCost(CSpaceInterface self, char const * name) -> double"""
+        """
+        visibilityCost(CSpaceInterface self, char const * name) -> double
+
+        Retrieves the empirical average cost of a given visibility test. 
+        """
         return _motionplanning.CSpaceInterface_visibilityCost(self, *args)
 
     def visibilityProbability(self, *args):
-        """visibilityProbability(CSpaceInterface self, char const * name) -> double"""
+        """
+        visibilityProbability(CSpaceInterface self, char const * name) -> double
+
+        Retrieves the empirical average success rate of a given visibility
+        test. 
+        """
         return _motionplanning.CSpaceInterface_visibilityProbability(self, *args)
 
     def feasibilityQueryOrder(self):
-        """feasibilityQueryOrder(CSpaceInterface self) -> PyObject *"""
+        """
+        feasibilityQueryOrder(CSpaceInterface self) -> PyObject *
+
+        Retrieves the current order of feasibility tests. 
+        """
         return _motionplanning.CSpaceInterface_feasibilityQueryOrder(self)
 
     def visibilityQueryOrder(self):
-        """visibilityQueryOrder(CSpaceInterface self) -> PyObject *"""
+        """
+        visibilityQueryOrder(CSpaceInterface self) -> PyObject *
+
+        Retrieves the current order of visibility tests. 
+        """
         return _motionplanning.CSpaceInterface_visibilityQueryOrder(self)
 
     __swig_setmethods__["index"] = _motionplanning.CSpaceInterface_index_set

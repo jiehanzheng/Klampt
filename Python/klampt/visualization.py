@@ -45,19 +45,20 @@ def animate(name,animation,speed=1.0): Sends an animation to the object.
 def setAppearance(name,appearance): changes the Appearance of an item.
 def revertAppearance(name): restores the Appearance of an item
 def setAttribute(name,attribute,value): sets an attribute of the appearance
-    of an item.
+    of an item.  Typical attributes are color, size, length, width...
+    TODO: document all accepted attributes.
 def setColor(name,r,g,b,a=1.0): changes the color of an item.
 def setPlugin(plugin): plugin must be an instance of a GLPluginBase. 
     This plugin will now capture input from the visualization and can override
     any of the default behavior of the visualizer.
-
 def setCustom(function,args): Advanced usage.  This function is called within
     the visualization thread, and is necessary to do anything with the opengl
     visualization including drawing.
 def pauseAnimation(paused=True): Turns on/off animation.
 def stepAnimation(amount): Moves forward the animation time by the given amount
     in seconds
-def animationTime(newtime=None): Retrieves the current animation time
+def animationTime(newtime=None): Gets/sets the current animation time
+    If newtime == None (default), this gets the animation time.
     If newtime != None, this sets a new animation time.
 """
 
@@ -73,6 +74,7 @@ import time
 import signal
 import coordinates
 from trajectory import *
+from contact import ContactPoint,Hold
 
 _baseClass = None
 _globalLock = Lock()
@@ -455,9 +457,9 @@ class CachedGLObject:
             self.displayListParameters = parameters
             self.changed = False
             if self.glDisplayList == None:
-                print "Generating new display list",self.name
+                #print "Generating new display list",self.name
                 self.glDisplayList = glGenLists(1)
-            print "Compiling display list",self.name
+            #print "Compiling display list",self.name
             if transform:
                 glPushMatrix()
                 glMultMatrixf(sum(zip(*se3.homogeneous(transform)),()))
@@ -511,6 +513,11 @@ class VisAppearance:
                 self.subAppearances[("Direction",n)] = VisAppearance(d,n)
             for n,g in item.subgroups.iteritems():
                 self.subAppearances[("Subgroup",n)] = VisAppearance(g,n)
+        if isinstance(item,Hold):
+            if item.ikConstraint is not None:
+                self.subAppearances["ikConstraint"] = VisAppearance(item.ikConstraint,"ik")
+            for n,c in enumerate(item.contacts):
+                self.subAppearances[("contact",n)] = VisAppearance(c,n)
         for (k,a) in self.subAppearances.iteritems():
             a.attributes = self.attributes
             
@@ -598,7 +605,7 @@ class VisAppearance:
         elif len(self.subAppearances)!=0:
             for n,app in self.subAppearances.iteritems():
                 app.widget = self.widget
-                app.draw(world)            
+                app.draw(world)
         elif isinstance(item,coordinates.Point):
             def drawRaw():
                 glDisable(GL_DEPTH_TEST)
@@ -688,6 +695,25 @@ class VisAppearance:
             self.displayCache[0].draw(drawRaw,transform=None,parameters = (t1,t2))
             if name != None:
                 self.drawText(name,spline.hermite_eval(t1[1],v1,t2[1],v2,0.5))
+        elif isinstance(item,coordinates.Group):
+            pass
+        elif isinstance(item,ContactPoint):
+            def drawRaw():
+                glDisable(GL_LIGHTING)
+                glEnable(GL_POINT_SMOOTH)
+                glPointSize(self.attributes.get("size",5.0))
+                l = self.attributes.get("length",0.05)
+                glColor4f(*self.attributes.get("color",[1,0.5,0,1]))
+                glBegin(GL_POINTS)
+                glVertex3f(0,0,0)
+                glEnd()
+                glBegin(GL_LINES)
+                glVertex3f(0,0,0)
+                glVertex3f(l,0,0)
+                glEnd()
+            self.displayCache[0].draw(drawRaw,[so3.canonical(item.n),item.x])
+        elif isinstance(item,Hold):
+            pass
         else:
             types = resource.objectToTypes(item,world)
             if isinstance(types,(list,tuple)):

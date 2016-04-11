@@ -2,7 +2,9 @@
 subroutines."""
 
 import ik
-from robotsim import *
+import robotsim
+from robotsim import RobotModel,RobotModelLink,RigidObjectModel,TerrainModel
+import se3
 
 def idToObject(world,ID):
     """Helper: takes a WorldModel ID and converts it into an object."""
@@ -69,6 +71,107 @@ class ContactPoint:
         self.kFriction = v[6]
 
 
+
+class Hold:
+    """A Hold, contains both contact points and an IK constraint.
+    Similar to the Hold class in the C++ RobotSim library.
+
+    Attributes:
+        - link: the link index
+        - ikConstraint: an IKObjective object
+          (see klampt.robotsim.IKObjective or klampt.ik.objective)
+        - contacts: a list of ContactPoint objects
+          (see klampt.contact.ContactPoint)
+    """
+    def __init__(self):
+        self.link = None
+        self.ikConstraint = None
+        self.contacts = []
+
+    def setFixed(self,link,contacts):
+        """Creates this hold such that it fixes a robot link to match a list of contacts
+        (in world space) at its current transform.
+
+        Arguments:
+        - link: a robot link or rigid object, currently contacting the environment / object at contacts
+        - contacts: a list of ContactPoint objects, given in world coordinates.
+        """
+        assert isinstance(link,(RobotModelLink,RigidObjectModel)),"Argument must be a robot link or rigid object"
+        self.link = link.index
+        T = link.getTransform()
+        Tinv = se3.inv(T)
+        self.ikConstraint = ik.objective(link,local=[se3.apply(Tinv,c.x) for c in contacts],world=[c.x for c in contacts])
+        self.contacts = contacts[:]
+
+    def transform(self,xform):
+        """Given a rigid transform xform given as an se3 element, transforms the hold's
+        contacts and ik constraint in-place."""
+        for c in self.contacts:
+            c.transform(xform)
+        self.ikConstraint.transform(*xform)
+
+
+
+
+def _flatten(contactOrHoldList):
+    if isinstance(contactOrHoldList,ContactPoint):
+        return [contactOrHoldList.tolist()]
+    elif isinstance(contactOrHoldList,Hold):
+        return [c.tolist() for c in contactOrHoldList.contacts]
+    else:
+        return sum([_flatten(c) for c in contactOrHoldList],[])
+
+def forceClosure(contactOrHoldList):
+    """Given a list of contacts or Holds, tests for force closure.
+    Return value is True or False"""
+    return robotsim.forceClosure(_flatten(contactOrHoldList))
+    
+def comEquilibrium(contactOrHoldList,fext=(0,0,-1),com=None):
+    """Given a list of contacts or Holds, an external gravity force,
+    and a COM, tests for the existence of an equilibrium solution.
+
+    If com == None, this tests whether there exists any equilibrium
+    com, and returns True/False.
+
+    If com != None, this returns either None if there is no solution,
+    or otherwise returns a list of contact forces"""
+    return robotsim.comEquilibrium(_flatten(contactOrHoldList),fext,com)
+
+def supportPolygon(contactOrHoldList):
+    """Given a list of contacts or Holds, returns the support polygon.
+    The support polygon is given by list of tuples (ax,ay,b) such
+    that the contraint ax*x+ay*y <= c holds for all (x,y) in the support
+    polygon.
+
+    An empty support polygon is given by the result [(0,0,-1)].
+    A complete support polygon is given by the result [].
+    """
+    return robotsim.supportPolygon(_flatten(contactOrHoldList))
+
+def equilibriumTorques(robot,holdList,fext=(0,0,-9.8),internalTorques=None,norm=0):
+    """ Solves for the torques / forces that keep the robot balanced against gravity.
+ 
+    Arguments
+    - robot: the robot model, posed in its current configuration
+    - holdList: a list of Holds.
+    - fext: the external force (e.g., gravity)
+    - internalTorques: if given, a list of length robot.numDofs giving internal torques.
+      For example, can incorporate dynamics into the solver.
+    - norm: the torque norm to minimize.  If 0, minimizes the l-infinity norm (default)
+         If 1, minimizes the l-1 norm.  If 2, minimizes the l-2 norm (experimental,
+         may not get good results)
+    Return value is a pair (t,f) giving the joint torques and a list of frictional
+    contact forces, if a solution exists. The return value is None if no solution exists.
+    """
+    links = sum([[h.link]*len(h.contacts) for h in holdList],[])
+    if internalTorques is None:
+        res = robotsim.equilibriumTorques(robot,_flatten(holdList),links,fext,norm)
+    else:
+        res = robotsim.equilibriumTorques(robot,_flatten(holdList),links,fext,internalTorques,norm)
+    if res is None: return res
+    f = res[1]
+    return (res[0],[f[i*3:i*3+3] for i in xrange(len(f)/3)])
+
 def contactMap(contacts,fixed=None):
     """Given an unordered list of ContactPoints, computes a canonical dict
     from (obj1,obj2) pairs to a list of contacts on those objects.
@@ -77,7 +180,7 @@ def contactMap(contacts,fixed=None):
     
     If fixed is provided, all objects for which fixed(x) returns true will be
     set to None.  The most common example, which fixes terrains, is
-       lambda(x): x==None or isinstance(x,TerrainModel)
+       lambda x: x is None or isinstance(x,TerrainModel)
     """
     worlds = set()
     robots = set()
@@ -130,7 +233,7 @@ def simContactMap(sim):
     """Given a robotsim simulation, returns a contact map representing all
     current contacts (among bodies with collision feedback enabled)."""
     cmap = dict()
-    w = sim.getWorld()
+    w = sim.world
     for a in xrange(w.numIDs()):
         for b in xrange(a):
             c = sim.getContacts(a,b)
@@ -142,27 +245,52 @@ def simContactMap(sim):
                 cmap[(oa,ob)] = clist
     return cmap
 
-def contactIKObjectives(contactMap):
+def contactMapIKObjectives(contactmap):
     """Given a contact map, computes a set of non-conflicting
     IKObjective's or GeneralizedIKObjective's that enforce all simultaneous
     contact constraints.  Usually called in conjunction with contactMap
     with the following sequence:
 
-    objectives = contactIKObjectives(contactMap(contacts,lambda(x):x==None or isinstance(x,TerrainModel)))
+    objectives = contactMapIKObjectives(contactMap(contacts,lambda x:x==None or isinstance(x,TerrainModel)))
     """
-    for (o1,o2) in contactMap.iterkeys():
-        objectives = []
-        for ((o1,o2),clist) in contactMap:
-            assert o1 != None
-            
-            x1loc = [o1.getLocalPosition(c.x) for c in clist]
-            if o2 != None:
-                x2loc = [o2.getLocalPosition(c.x) for c in clist]
-                objectives.append(ik.objective(o1,o2,local=x1loc,world=x2loc))
-            else:
-                x2 = [c.x for c in clist]
-                objectives.append(ik.objective(o1,local=x1loc,world=x2))
-        return objectives
+    objectives = []
+    for ((o1,o2),clist) in contactmap.iteritems():
+        assert o1 != None
+        
+        x1loc = [o1.getLocalPosition(c.x) for c in clist]
+        if o2 is not None and not isinstance(o2,TerrainModel):
+            x2loc = [o2.getLocalPosition(c.x) for c in clist]
+            objectives.append(ik.objective(o1,o2,local=x1loc,world=x2loc))
+        else:
+            x2 = [c.x for c in clist]
+            objectives.append(ik.objective(o1,local=x1loc,world=x2))
+    return objectives
+
+def contactMapHolds(contactmap):
+    """Given a contact map, computes a set of non-conflicting
+    Holds that enforce all simultaneous contact constraints.  Usually called in conjunction with contactMap
+    with the following sequence:
+
+    objectives = contactMapHolds(contactMap(contacts,lambda x:x==None or isinstance(x,TerrainModel)))
+    """
+    holds = []
+    for ((o1,o2),clist) in contactmap.iteritems():
+        assert o1 != None
+        
+        if not isinstance(o1,RobotModelLink):
+            raise ValueError("Cannot retrieve Holds for contact map not containing robot links")
+        h = Hold()
+        h.link = o1.index
+        h.contacts = clist
+        x1loc = [o1.getLocalPosition(c.x) for c in clist]
+        if o2 is not None and not isinstance(o2,TerrainModel):
+            x2loc = [o2.getLocalPosition(c.x) for c in clist]
+            h.ikConstraint = ik.objective(o1,o2,local=x1loc,world=x2loc)
+        else:
+            x2 = [c.x for c in clist]
+            h.ikConstraint = ik.objective(o1,local=x1loc,world=x2)
+        holds.append(h)
+    return holds
 
 def skew(x):
     """Returns the skew-symmetric cross-product matrix corresponding to the

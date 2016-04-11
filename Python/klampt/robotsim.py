@@ -1539,7 +1539,11 @@ class RobotModelLink(_object):
         return _robotsim.RobotModelLink_getID(self)
 
     def getName(self):
-        """getName(RobotModelLink self) -> char const *"""
+        """
+        getName(RobotModelLink self) -> char const *
+
+        Returns the name of the robot link. 
+        """
         return _robotsim.RobotModelLink_getName(self)
 
     def robot(self):
@@ -1575,7 +1579,12 @@ class RobotModelLink(_object):
         return _robotsim.RobotModelLink_getParent(self)
 
     def parent(self):
-        """parent(RobotModelLink self) -> RobotModelLink"""
+        """
+        parent(RobotModelLink self) -> RobotModelLink
+
+        Returns a reference to the link's parent, or a NULL link if it has no
+        parent. 
+        """
         return _robotsim.RobotModelLink_parent(self)
 
     def setParent(self, *args):
@@ -1583,7 +1592,7 @@ class RobotModelLink(_object):
         setParent(RobotModelLink self, int p)
         setParent(RobotModelLink self, RobotModelLink l)
 
-        Sets the index of the link's parent (on its robot). 
+        Sets the link's parent (must be on the same robot). 
         """
         return _robotsim.RobotModelLink_setParent(self, *args)
 
@@ -2201,7 +2210,10 @@ class RobotModel(_object):
         drawGL(RobotModel self)
 
         Draws the robot geometry. If keepAppearance=true, the current
-        appearance is honored. Otherwise, only the raw geometry is drawn. 
+        appearance is honored. Otherwise, only the raw geometry is drawn.
+        PERFORMANCE WARNING: if keepAppearance is false, then this does not
+        properly reuse OpenGL display lists. A better approach to changing the
+        robot's appearances is to set the link Appearance's directly. 
         """
         return _robotsim.RobotModel_drawGL(self, keepAppearance)
 
@@ -2223,7 +2235,7 @@ class RigidObjectModel(_object):
     """
     A rigid movable object.
 
-    State is retrieved/set using get/setTransform. No velocities are
+    State is retrieved/set using get/setTransform. Note: no velocities are
     stored.
 
     C++ includes: robotmodel.h 
@@ -2282,6 +2294,12 @@ class RigidObjectModel(_object):
         """
         drawGL(RigidObjectModel self, bool keepAppearance=True)
         drawGL(RigidObjectModel self)
+
+        Draws the object's geometry. If keepAppearance=true, the current
+        appearance is honored. Otherwise, only the raw geometry is drawn.
+        PERFORMANCE WARNING: if keepAppearance is false, then this does not
+        properly reuse OpenGL display lists. A better approach to changing
+        object's Appearance directly. 
         """
         return _robotsim.RigidObjectModel_drawGL(self, keepAppearance)
 
@@ -2339,6 +2357,12 @@ class TerrainModel(_object):
         """
         drawGL(TerrainModel self, bool keepAppearance=True)
         drawGL(TerrainModel self)
+
+        Draws the object's geometry. If keepAppearance=true, the current
+        appearance is honored. Otherwise, only the raw geometry is drawn.
+        PERFORMANCE WARNING: if keepAppearance is false, then this does not
+        properly reuse OpenGL display lists. A better approach to changing
+        object's Appearance directly. 
         """
         return _robotsim.TerrainModel_drawGL(self, keepAppearance)
 
@@ -2574,7 +2598,7 @@ class WorldModel(_object):
         """
         drawGL(WorldModel self)
 
-        Draws the entire world. 
+        Draws the entire world using OpenGL. 
         """
         return _robotsim.WorldModel_drawGL(self)
 
@@ -2813,9 +2837,27 @@ class IKObjective(_object):
         """
         getTransform(IKObjective self)
 
-        For fixed-transform constraints, returns the transform (R,T) 
+        For fixed-transform constraints, returns the transform (R,t) 
         """
         return _robotsim.IKObjective_getTransform(self)
+
+    def transform(self, *args):
+        """
+        transform(IKObjective self, double const [9] R, double const [3] t)
+
+        Tranforms the target position/rotation of this IK constraint by
+        transform (R,t) 
+        """
+        return _robotsim.IKObjective_transform(self, *args)
+
+    def transformLocal(self, *args):
+        """
+        transformLocal(IKObjective self, double const [9] R, double const [3] t)
+
+        Tranforms the local position/rotation of this IK constraint by
+        transform (R,t) 
+        """
+        return _robotsim.IKObjective_transformLocal(self, *args)
 
     def loadString(self, *args):
         """
@@ -3209,7 +3251,11 @@ class SimRobotController(_object):
     __swig_destroy__ = _robotsim.delete_SimRobotController
     __del__ = lambda self : None;
     def model(self):
-        """model(SimRobotController self) -> RobotModel"""
+        """
+        model(SimRobotController self) -> RobotModel
+
+        Retrieves the robot model associated with this controller. 
+        """
         return _robotsim.SimRobotController_model(self)
 
     def setRate(self, *args):
@@ -3500,8 +3546,8 @@ class SimBody(_object):
         """
         applyWrench(SimBody self, double const [3] f, double const [3] t)
 
-        Applies a force and torque about the COM at the current simulation
-        time step. 
+        Applies a force and torque about the COM over the duration of the next
+        Simulator.simulate(t) call. 
         """
         return _robotsim.SimBody_applyWrench(self, *args)
 
@@ -3509,8 +3555,8 @@ class SimBody(_object):
         """
         applyForceAtPoint(SimBody self, double const [3] f, double const [3] pworld)
 
-        Applies a force at a given point (in world coordinates) at the current
-        simulation time step. 
+        Applies a force at a given point (in world coordinates) over the
+        duration of the next Simulator.simulate(t) call. 
         """
         return _robotsim.SimBody_applyForceAtPoint(self, *args)
 
@@ -3518,8 +3564,8 @@ class SimBody(_object):
         """
         applyForceAtLocalPoint(SimBody self, double const [3] f, double const [3] plocal)
 
-        Applies a force at a given point (in local coordinates) at the current
-        simulation time step. 
+        Applies a force at a given point (in local coordinates) over the
+        duration of the next Simulator.simulate(t) call. 
         """
         return _robotsim.SimBody_applyForceAtLocalPoint(self, *args)
 
@@ -3742,7 +3788,10 @@ class Simulator(_object):
 
         Call this to enable contact feedback between the two objects
         (arguments are indexes returned by object.getID()). Contact feedback
-        has a small overhead so you may want to do this selectively. 
+        has a small overhead so you may want to do this selectively. This must
+        be called before using inContact, getContacts, getContactForces,
+        contactForce, contactTorque, hadContact, hadSeparation,
+        hadPenetration, and meanContactForce. 
         """
         return _robotsim.Simulator_enableContactFeedback(self, *args)
 
@@ -3761,7 +3810,8 @@ class Simulator(_object):
         inContact(Simulator self, int aid, int bid) -> bool
 
         Returns true if the objects (indexes returned by object.getID()) are
-        in contact on the current time step. 
+        in contact on the current time step. You can set bid=-1 to tell if
+        object a is in contact with any object. 
         """
         return _robotsim.Simulator_inContact(self, *args)
 
@@ -3770,7 +3820,8 @@ class Simulator(_object):
         getContacts(Simulator self, int aid, int bid)
 
         Returns the list of contacts (x,n,kFriction) at the last time step.
-        Normals point into object a. 
+        Normals point into object a. The contact point (x,n,kFriction) is
+        represented as a 7-element vector. 
         """
         return _robotsim.Simulator_getContacts(self, *args)
 
@@ -3787,7 +3838,8 @@ class Simulator(_object):
         """
         contactForce(Simulator self, int aid, int bid)
 
-        Returns the contact force on object a at the last time step. 
+        Returns the contact force on object a at the last time step. You can
+        set bid to -1 to get the overall contact force on object a. 
         """
         return _robotsim.Simulator_contactForce(self, *args)
 
@@ -3796,7 +3848,8 @@ class Simulator(_object):
         contactTorque(Simulator self, int aid, int bid)
 
         Returns the contact force on object a (about a's origin) at the last
-        time step. 
+        time step. You can set bid to -1 to get the overall contact force on
+        object a. 
         """
         return _robotsim.Simulator_contactTorque(self, *args)
 
@@ -3805,7 +3858,8 @@ class Simulator(_object):
         hadContact(Simulator self, int aid, int bid) -> bool
 
         Returns true if the objects had contact over the last simulate() call.
-
+        You can set bid to -1 to determine if object a had contact with any
+        other object. 
         """
         return _robotsim.Simulator_hadContact(self, *args)
 
@@ -3814,12 +3868,22 @@ class Simulator(_object):
         hadSeparation(Simulator self, int aid, int bid) -> bool
 
         Returns true if the objects had ever separated during the last
-        simulate() call. 
+        simulate() call. You can set bid to -1 to determine if object a had no
+        contact with any other object. 
         """
         return _robotsim.Simulator_hadSeparation(self, *args)
 
     def hadPenetration(self, *args):
-        """hadPenetration(Simulator self, int aid, int bid) -> bool"""
+        """
+        hadPenetration(Simulator self, int aid, int bid) -> bool
+
+        Returns true if the objects interpenetrated during the last simulate()
+        call. If so, the simulation may lead to very inaccurate results or
+        artifacts. You can set bid to -1 to determine if object a penetrated
+        any object, or you can set aid=bid=-1 to determine whether any object
+        is penetrating any other (indicating that the simulation will not be
+        functioning properly in general). 
+        """
         return _robotsim.Simulator_hadPenetration(self, *args)
 
     def meanContactForce(self, *args):
@@ -3946,6 +4010,19 @@ def supportPolygon(*args):
   """
     supportPolygon(doubleMatrix contacts) -> PyObject
     supportPolygon(doubleMatrix contactPositions, doubleMatrix frictionCones) -> PyObject *
+
+    A fancy version of the normal supportPolygon test. contactPositions is
+    a list of 3-lists giving the contact point positions. The i'th element
+    in the list frictionCones has length (k*4), and gives the contact
+    force constraints (ax,ay,az,b) where ax*fx+ay*fy+az*fz <= b limits the
+    contact force (fx,fy,fz) at the i'th contact. Each of the k 4-tuples
+    is laid out sequentially per-contact.
+
+    The return value is a list of 3-tuples giving the sorted plane
+    boundaries of the polygon. The format of a plane is (nx,ny,ofs) where
+    (nx,ny) are the outward facing normals, and ofs is the offset from 0.
+    In other words to test stability of a com [x,y], you can test whether
+    dot([nx,ny],[x,y]) <= ofs for all planes. 
     """
   return _robotsim.supportPolygon(*args)
 
@@ -3955,6 +4032,16 @@ def supportPolygon2D(*args):
     supportPolygon2D(doubleMatrix contacts, doubleMatrix frictionCones) -> PyObject *
     """
   return _robotsim.supportPolygon2D(*args)
+
+def equilibriumTorques(*args):
+  """
+    equilibriumTorques(RobotModel robot, doubleMatrix contacts, intVector links, doubleVector fext, double norm=0) -> PyObject
+    equilibriumTorques(RobotModel robot, doubleMatrix contacts, intVector links, doubleVector fext) -> PyObject
+    equilibriumTorques(RobotModel robot, doubleMatrix contacts, intVector links, doubleVector fext, doubleVector internalTorques, 
+        double norm=0) -> PyObject
+    equilibriumTorques(RobotModel robot, doubleMatrix contacts, intVector links, doubleVector fext, doubleVector internalTorques) -> PyObject *
+    """
+  return _robotsim.equilibriumTorques(*args)
 # This file is compatible with both classic and new-style classes.
 
 

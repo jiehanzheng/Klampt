@@ -12,9 +12,8 @@ functions.
 """
 from robotsim import *
 import so3,vectorops
-from contact import ContactPoint
+from contact import ContactPoint, Hold
 from trajectory import Trajectory
-import hold
 
 
 def writeVector(q):
@@ -255,7 +254,7 @@ def readHold(text):
         raise ValueError('Invalid hold begin text')
     if lines[-1] != 'end':
         raise ValueError('Invalid hold end text')
-    h = hold.Hold()
+    h = Hold()
     posLocal = None
     posWorld = None
     localPos0 = None

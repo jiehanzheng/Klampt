@@ -13,6 +13,7 @@
 #include "IO/ROS.h"
 #include <KrisLibrary/robotics/NewtonEuler.h>
 #include <KrisLibrary/robotics/Stability.h>
+#include <KrisLibrary/robotics/TorqueSolver.h>
 #include <KrisLibrary/meshing/PointCloud.h>
 #include <KrisLibrary/GLdraw/drawextra.h>
 #include <KrisLibrary/GLdraw/drawMesh.h>
@@ -4195,4 +4196,38 @@ PyObject* supportPolygon2D(const std::vector<std::vector<double> >& contacts)
 PyObject* supportPolygon2D(const std::vector<std::vector<double> >& contacts,const std::vector<std::vector<double> >& frictionCones)
 {
   throw PyException("2D support polygons not implemented yet");
+}
+
+PyObject* equilibriumTorques(const RobotModel& robot,const std::vector<std::vector<double> >& contacts,const std::vector<int>& links,const std::vector<double>& fext,const std::vector<double>& internalTorques,double norm)
+{
+  if(robot.robot == NULL) throw PyException("Called with empty robot");
+  if(fext.size() != 3) throw PyException("Invalid external force, must be a 3-list");
+  if(!internalTorques.empty()) {
+    if(internalTorques.size() != robot.robot->links.size())
+      throw PyException("Invalid number of internal torques specified");
+  }
+  vector<ContactPoint> cps;
+  CustomContactFormation formation;
+  Convert(contacts,cps);
+  formation.links = links;
+  formation.contacts.resize(cps.size());
+  for(size_t i=0;i<cps.size();i++)
+    formation.contacts[i].set(cps[i],gStabilityNumFCEdges);
+  TorqueSolver ts(*robot.robot,formation);
+  ts.SetGravity(Vector3(fext[0],fext[1],fext[2]));
+  ts.SetNorm((norm == 0? Inf : norm));
+  bool weighted = true;
+  ts.Init(weighted);
+  if(!internalTorques.empty())
+    ts.internalForces.copy(internalTorques);
+  if(!ts.Solve()) {
+    Py_RETURN_NONE;
+  }
+  return Py_BuildValue("(NN)",ToPy(ts.t),ToPy(ts.f));
+}
+
+PyObject* equilibriumTorques(const RobotModel& robot,const std::vector<std::vector<double> >& contacts,const std::vector<int>& links,const vector<double>& fext,double norm)
+{
+  vector<double> internalTorques;
+  return ::equilibriumTorques(robot,contacts,links,fext,internalTorques,norm);
 }
