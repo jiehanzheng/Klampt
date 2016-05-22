@@ -102,10 +102,10 @@ class SimLogger:
             values += sim.getActualTorques(i)
             j = 0
             while True:
-                s = self.sim.controller(i).getSensor(j)
+                s = self.sim.controller(i).sensor(j)
                 if len(s.name())==0:
                     break
-                meas = s.measurements()
+                meas = s.getMeasurements()
                 values += meas
                 j += 1
         for i in xrange(world.numRigidObjects()):
