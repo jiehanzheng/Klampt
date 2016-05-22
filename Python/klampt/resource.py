@@ -17,7 +17,7 @@ import os
 import time
 from robotsim import WidgetSet,RobotPoser,ObjectPoser,TransformPoser,PointPoser,WorldModel,RobotModelLink,RigidObjectModel,IKObjective
 from contact import ContactPoint
-from hold import Hold
+from contact import Hold
 import visualization
 import glcommon
 #from OpenGL.GL import *
