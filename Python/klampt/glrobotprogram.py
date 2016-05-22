@@ -2,7 +2,7 @@ from OpenGL.GL import *
 from robotsim import Simulator,WidgetSet,RobotPoser
 from glprogram import *
 import robotcollide
-import simlog
+import simulation
 import sys
 
 class GLSimulationProgram(GLRealtimeProgram):
@@ -35,7 +35,7 @@ class GLSimulationProgram(GLRealtimeProgram):
         #the current example creates a collision class, simulator, 
         #simulation flag, and screenshot flags
         self.collider = robotcollide.WorldCollider(world)
-        self.sim = Simulator(world)
+        self.sim = simulation.SimpleSimulator(world)
         self.simulate = False
         self.commanded_config_color = [0,1,0,0.5]
 
@@ -48,19 +48,7 @@ class GLSimulationProgram(GLRealtimeProgram):
         self.screenshotCount = 0
         self.verbose = 0
 
-        #turn this on to save log to disk
-        self.logging = False
-        self.logger = None
 
-    def beginLogging(self,state_fn="simulation_state.csv",contact_fn="simulation_contact.csv"):
-        self.logging = True
-        self.logger = SimLogger(self.sim,state_fn,contact_fn)
-    def endLogging(self):
-        self.logging = False
-        self.logger = None
-    def pauseLogging(self,paused=True):
-        self.logging=not paused
-        
     def display(self):
         #Put your display handler here
         #the current example draws the simulated world in grey and the
@@ -114,7 +102,7 @@ class GLSimulationProgram(GLRealtimeProgram):
             glEnable(GL_DEPTH_TEST)
 
     def control_loop(self):
-        #Put your control handler here
+        """Overload this to perform custom control handling."""
         pass
 
     def idle(self):
@@ -131,10 +119,8 @@ class GLSimulationProgram(GLRealtimeProgram):
                 self.screenshotCount += 1
                 self.nextScreenshotTime += 1.0/30.0;
 
-            #Handle logging
-            if self.logger: self.logger.saveStep()
-
-            #Advance simulation
+            if self.sim.getTime() == 0:
+                self.sim.simulate(0)
             self.control_loop()
             self.sim.simulate(self.dt)
             self.refresh()
@@ -154,24 +140,28 @@ class GLSimulationProgram(GLRealtimeProgram):
         if self.verbose: print c,"pressed"
         pass
 
+    def print_help(self):
+        #Put your help printouts here
+        print "?: print this help message"
+        print "s: toggle simulation"
+        print "m: toggle saving frames to disk"
+        print "l: toggle logging"
+        print "c: toggle drawing of contacts"
+
     def keyboardfunc(self,c,x,y):
         #Put your keyboard handler here
         #the current example toggles simulation / movie mode
         if self.verbose: print c,"pressed"
-        if c == 's':
+        if c=='?':
+            self.print_help()
+        elif c == 's':
             self.simulate = not self.simulate
             print "Simulating:",self.simulate
         elif c == 'm':
             self.saveScreenshots = not self.saveScreenshots
             print "Movie mode:",self.saveScreenshots
         elif c == 'l':
-            if self.logging:
-                self.pauseLogging()
-            else:
-                if self.logger==None:
-                    self.beginLogging()
-                else:
-                    self.pauseLogging(False)
+            self.sim.toggleLogging()
         elif c == 'c':
             self.drawContacts = not self.drawContacts
             if self.drawContacts:
