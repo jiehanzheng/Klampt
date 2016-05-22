@@ -3673,7 +3673,6 @@ class Simulator(_object):
     __repr__ = _swig_repr
     def __init__(self, *args): 
         """
-        __init__(Simulator self, WorldModel model, char const * settings=None) -> Simulator
         __init__(Simulator self, WorldModel model) -> Simulator
 
         Constructs the simulator from a WorldModel. If the WorldModel was
@@ -3957,6 +3956,14 @@ class Simulator(_object):
 
         """
         return _robotsim.Simulator_setSimStep(self, *args)
+
+    def getSetting(self, *args):
+        """getSetting(Simulator self, std::string const & name) -> std::string"""
+        return _robotsim.Simulator_getSetting(self, *args)
+
+    def setSetting(self, *args):
+        """setSetting(Simulator self, std::string const & name, std::string const & value)"""
+        return _robotsim.Simulator_setSetting(self, *args)
 
     __swig_setmethods__["index"] = _robotsim.Simulator_index_set
     __swig_getmethods__["index"] = _robotsim.Simulator_index_get
