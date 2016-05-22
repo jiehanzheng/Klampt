@@ -2706,7 +2706,7 @@ void TerrainModel::drawGL(bool keepAppearance)
 /***************************  SIMULATION CODE ***************************************/
 
 
-Simulator::Simulator(const WorldModel& model,const char* settings)
+Simulator::Simulator(const WorldModel& model)
 {
 #ifdef dDOUBLE
   if(dCheckConfiguration("ODE_double_precision")!=1) {
@@ -2722,10 +2722,6 @@ Simulator::Simulator(const WorldModel& model,const char* settings)
   index = createSim();
   world = model;
   sim = &sims[index]->sim;
-  if(settings && 0==strcmp(settings,"no_blem")) {
-    printf("Turning off boundary layer collisions\n");
-    sim->odesim.GetSettings().boundaryLayerCollisions = false;
-  }
 
   //initialize simulation
   printf("Initializing simulation...\n");
@@ -2972,6 +2968,49 @@ void Simulator::setSimStep(double dt)
   sim->simStep = dt;
 }
 
+  /// Retreives some simulation setting.  Valid names are gravity,
+  /// simStep, boundaryLayerCollisions, rigidObjectCollisions, robotSelfCollisions,
+  /// robotRobotCollisions, adaptiveTimeStepping, maxContacts,
+  /// clusterNormalScale, errorReductionParameter, and dampedLeastSquaresParameter
+std::string Simulator::getSetting(const std::string& name)
+{
+  ODESimulatorSettings& settings = sim->odesim.GetSettings();
+  stringstream ss;
+  if(name == "gravity") ss << Vector3(settings.gravity);
+  else if(name == "simStep") ss << sim->simStep;
+  else if(name == "boundaryLayerCollisions") ss << settings.boundaryLayerCollisions;
+  else if(name == "rigidObjectCollisions") ss << settings.rigidObjectCollisions;
+  else if(name == "robotSelfCollisions") ss << settings.robotSelfCollisions;
+  else if(name == "robotRobotCollisions") ss << settings.robotRobotCollisions;
+  else if(name == "adaptiveTimeStepping") ss << settings.adaptiveTimeStepping;
+  else if(name == "maxContacts") ss << settings.maxContacts;
+  else if(name == "clusterNormalScale") ss << settings.clusterNormalScale;
+  else if(name == "errorReductionParameter") ss << settings.errorReductionParameter;
+  else if(name == "dampedLeastSquaresParameter") ss << settings.dampedLeastSquaresParameter;
+  else throw PyException("Invalid setting queried in Simulator.getSetting()");
+  return ss.str();
+}
+
+void Simulator::setSetting(const std::string& name,const std::string& value)
+{
+  ODESimulatorSettings& settings = sim->odesim.GetSettings();
+  stringstream ss(value);
+  if(name == "gravity") { Vector3 g; ss >> g; sim->odesim.SetGravity(settings.gravity); }
+  else if(name == "simStep") ss >> sim->simStep;
+  else if(name == "boundaryLayerCollisions") ss >> settings.boundaryLayerCollisions;
+  else if(name == "rigidObjectCollisions") ss >> settings.rigidObjectCollisions;
+  else if(name == "robotSelfCollisions") ss >> settings.robotSelfCollisions;
+  else if(name == "robotRobotCollisions") ss >> settings.robotRobotCollisions;
+  else if(name == "adaptiveTimeStepping") ss >> settings.adaptiveTimeStepping;
+  else if(name == "maxContacts") ss >> settings.maxContacts;
+  else if(name == "clusterNormalScale") ss >> settings.clusterNormalScale;
+  else if(name == "errorReductionParameter") { ss >> settings.errorReductionParameter; sim->odesim.SetERP(settings.errorReductionParameter); }
+  else if(name == "dampedLeastSquaresParameter") { ss >> settings.dampedLeastSquaresParameter; sim->odesim.SetCFM(settings.dampedLeastSquaresParameter); }
+  else throw PyException("Invalid setting queried in Simulator.setSetting()");
+  if(ss.bad()) throw PyException("Invalid value string argument in Simulator.setSetting()");
+}
+
+
 SimRobotController Simulator::getController(int robot)
 {
   static bool warned = false;
@@ -3047,7 +3086,7 @@ void SimBody::applyWrench(const double f[3],const double t[3])
 void SimBody::applyForceAtPoint(const double f[3],const double pworld[3])
 {
   if(!body) return;
-  sim->sim->hooks.push_back(new ForceHook(body,Vector3(f),Vector3(pworld)));
+  sim->sim->hooks.push_back(new ForceHook(body,Vector3(pworld),Vector3(f)));
   sim->sim->hooks.back()->autokill = true;
   //dBodyAddForceAtPos(body,f[0],f[1],f[2],pworld[0],pworld[1],pworld[2]);
 }
@@ -3055,7 +3094,7 @@ void SimBody::applyForceAtPoint(const double f[3],const double pworld[3])
 void SimBody::applyForceAtLocalPoint(const double f[3],const double plocal[3])
 {
   if(!body) return;
-  sim->sim->hooks.push_back(new LocalForceHook(body,Vector3(f),Vector3(plocal)));
+  sim->sim->hooks.push_back(new LocalForceHook(body,Vector3(plocal),Vector3(f)));
   sim->sim->hooks.back()->autokill = true;
   //dBodyAddForceAtRelPos(body,f[0],f[1],f[2],plocal[0],plocal[1],plocal[2]);
 }
