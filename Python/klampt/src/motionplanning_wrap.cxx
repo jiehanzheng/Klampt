@@ -5864,6 +5864,40 @@ fail:
 }
 
 
+SWIGINTERN PyObject *_wrap_CSpaceInterface_getStats(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  CSpaceInterface *arg1 = (CSpaceInterface *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject *result = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:CSpaceInterface_getStats",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_CSpaceInterface, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "CSpaceInterface_getStats" "', argument " "1"" of type '" "CSpaceInterface *""'"); 
+  }
+  arg1 = reinterpret_cast< CSpaceInterface * >(argp1);
+  {
+    try {
+      result = (PyObject *)(arg1)->getStats();
+    }
+    catch(PyException& e) {
+      e.setPyErr();
+      return NULL;
+    }
+    catch(std::exception& e) {
+      PyErr_SetString(PyExc_RuntimeError, const_cast<char*>(e.what()));
+      return NULL;
+    }
+  }
+  resultobj = result;
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
 SWIGINTERN PyObject *_wrap_CSpaceInterface_index_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   CSpaceInterface *arg1 = (CSpaceInterface *) 0 ;
@@ -6872,6 +6906,7 @@ static PyMethodDef SwigMethods[] = {
 		"\n"
 		"Retrieves the current order of visibility tests. \n"
 		""},
+	 { (char *)"CSpaceInterface_getStats", _wrap_CSpaceInterface_getStats, METH_VARARGS, (char *)"CSpaceInterface_getStats(CSpaceInterface self) -> PyObject *"},
 	 { (char *)"CSpaceInterface_index_set", _wrap_CSpaceInterface_index_set, METH_VARARGS, (char *)"CSpaceInterface_index_set(CSpaceInterface self, int index)"},
 	 { (char *)"CSpaceInterface_index_get", _wrap_CSpaceInterface_index_get, METH_VARARGS, (char *)"CSpaceInterface_index_get(CSpaceInterface self) -> int"},
 	 { (char *)"CSpaceInterface_swigregister", CSpaceInterface_swigregister, METH_VARARGS, NULL},

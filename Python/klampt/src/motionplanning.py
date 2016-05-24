@@ -464,6 +464,10 @@ class CSpaceInterface(_object):
         """
         return _motionplanning.CSpaceInterface_visibilityQueryOrder(self)
 
+    def getStats(self):
+        """getStats(CSpaceInterface self) -> PyObject *"""
+        return _motionplanning.CSpaceInterface_getStats(self)
+
     __swig_setmethods__["index"] = _motionplanning.CSpaceInterface_index_set
     __swig_getmethods__["index"] = _motionplanning.CSpaceInterface_index_get
     if _newclass:index = _swig_property(_motionplanning.CSpaceInterface_index_get, _motionplanning.CSpaceInterface_index_set)

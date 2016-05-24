@@ -108,6 +108,7 @@ class CSpace:
         if self.feasibilityTests is not None:
             for n,f in zip(self.feasibilityTestNames,self.feasibilityTests):
                 self.cspace.addFeasibilityTest(n,f)
+            self.cspace.enableAdaptiveQueries()
             for (n,d) in self.feasibilityTestDependencies:
                 self.cspace.setFeasibilityDependency(n,d)
         else:

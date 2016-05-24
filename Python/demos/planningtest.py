@@ -10,12 +10,12 @@ import time
 import sys
 
 #settings
-DO_SIMPLIFY = 0
+DO_SIMPLIFY = 1
 DEBUG_SIMPLIFY = 0
 MANUAL_SPACE_CREATION = 0
 CLOSED_LOOP_TEST = 1
-PLAN_TO_GOAL_TEST = 0
-MANUAL_PLAN_CREATION = 0
+PLAN_TO_GOAL_TEST = 1
+MANUAL_PLAN_CREATION = 1
 
 #load the robot / world file
 fn = "../../data/robots/jaco.rob"
@@ -102,7 +102,9 @@ while True:
     else:
         break
 if cindex==0:
+    visualization.kill()
     exit(0)
+
 configs = configs[:cindex]
 resource.set("planningtest.configs",configs)
 
@@ -129,6 +131,8 @@ settings = { 'type':"sbl", 'perturbationRadius':0.5, 'bidirectional':1, 'shortcu
 #planner.
 wholepath = [configs[0]]
 for i in range(len(configs)-1):
+    t0 = time.time()
+    print "Creating plan..."
     if MANUAL_PLAN_CREATION:
         #Manual construction of planner
         plan = cspace.MotionPlan(space, **settings)
@@ -149,10 +153,13 @@ for i in range(len(configs)-1):
                                           **settings)
     if plan is None:
         break
+    print "Planner creation time",time.time()-t0
+    t0 = time.time()
     plan.space.cspace.enableAdaptiveQueries(True)
     print "Planning..."
     for round in range(10):
         plan.planMore(50)
+    print "Planning time, 500 iterations",time.time()-t0
     #this code just gives some debugging information. it may get expensive
     V,E = plan.getRoadmap()
     print len(V),"feasible milestones sampled,",len(E),"edges connected"
@@ -160,19 +167,26 @@ for i in range(len(configs)-1):
     if path is None or len(path)==0:
         print "Failed to plan path between configuration",i,"and",i+1
         #debug some sampled configurations
-        print V[0:max(10,len(V))]
+        print V[0:min(10,len(V))]
         break
     if CLOSED_LOOP_TEST:
         #the path is currently a set of milestones: discretize it so that it stays near the contact surface
+        #TODO: play with second parameter which governs how closely to space the waypoints
         path = space.discretizePath(path)
     wholepath += path[1:]
 
-    print "Query order:"
+    print "Constraint testing order:"
     print plan.space.cspace.feasibilityQueryOrder()
-    print "Manually optimizing query order..."
+    print "Manually optimizing constraint testing order..."
     plan.space.cspace.optimizeQueryOrder()
-    print "Optimized query order:"
+    print "Optimized constraint testing order:"
     print plan.space.cspace.feasibilityQueryOrder()
+
+    print "Plan stats:"
+    print plan.planner.getStats()
+
+    print "CSpace stats:"
+    print plan.space.cspace.getStats()
 
     #to be nice to the C++ module, do this to free up memory
     plan.space.close()

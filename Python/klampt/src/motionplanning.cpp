@@ -1,6 +1,7 @@
 #include "motionplanning.h"
 #include <KrisLibrary/planning/AnyMotionPlanner.h>
 #include <KrisLibrary/planning/CSpaceHelpers.h>
+#include <KrisLibrary/planning/EdgePlannerHelpers.h>
 #include "pyerr.h"
 #include "pyconvert.h"
 #include <KrisLibrary/math/random.h>
@@ -19,6 +20,7 @@ void setRandomSeed(int seed)
   Math::Srand(seed);
 }
 
+void UpdateStats(AdaptiveCSpace::PredicateStats& s,double testcost,bool testtrue,double strength=1.0);
 
 
 class PyCSpace;
@@ -30,8 +32,16 @@ class PyCSpace : public CSpace
 public:
   PyCSpace()
     :sample(NULL),sampleNeighborhood(NULL),
-     distance(NULL),interpolate(NULL),edgeResolution(0.001),cacheq(NULL),cacheq2(NULL),cachex(NULL),cachex2(NULL)
-  {}
+     distance(NULL),interpolate(NULL),edgeResolution(0.001),cacheq(NULL),cacheq2(NULL),cachex(NULL),cachex2(NULL),
+     visibleDistance(0),notVisibleDistance(0)
+  {
+    feasibleStats.cost = 0;
+    feasibleStats.probability = 0.5;
+    feasibleStats.count = 0;
+    visibleStats.cost = 0;
+    visibleStats.probability = 0.5;
+    visibleStats.count = 0;
+  }
 
   virtual ~PyCSpace() {
     Py_XDECREF(sample);
@@ -46,7 +56,7 @@ public:
 
   PyObject* UpdateTempConfig(const Config& q) {
     //PROBLEM when the values of q change, its address doesnt! we still have to re-make it
-    //if(&q == cacheq) return cachex;
+    if(&q == cacheq) return cachex;
     Py_XDECREF(cachex);
     cacheq = &q;
     cachex = PyListFromConfig(q);
@@ -54,7 +64,7 @@ public:
   }
   PyObject* UpdateTempConfig2(const Config& q) {
     //PROBLEM when the values of q change, its address doesnt! we still have to re-make it
-    //if(&q == cacheq2) return cachex2;
+    if(&q == cacheq2) return cachex2;
     Py_XDECREF(cachex2);
     cacheq2 = &q;
     cachex2 = PyListFromConfig(q);
@@ -78,6 +88,10 @@ public:
     distance = rhs.distance;
     interpolate = rhs.interpolate;
     edgeResolution = rhs.edgeResolution;
+    feasibleStats = rhs.feasibleStats;
+    visibleStats = rhs.visibleStats;
+    visibleDistance = rhs.visibleDistance;
+    notVisibleDistance = rhs.notVisibleDistance;
     Py_XINCREF(sample);
     Py_XINCREF(sampleNeighborhood);
     for(size_t i=0;i<visibleTests.size();i++)
@@ -136,6 +150,19 @@ public:
     }
   }
 
+  virtual bool IsFeasible(const Config& q) {
+    Timer timer;
+    bool res = CSpace::IsFeasible(q);
+    UpdateStats(feasibleStats,timer.ElapsedTime(),res);
+    return res;
+  }
+
+  virtual bool IsFeasible(const Config& q,int constraint) {
+    Timer timer;
+    bool res = CSpace::IsFeasible(q,constraint);
+    UpdateStats(feasibleStats,timer.ElapsedTime(),res);
+    return res;
+  }
 
   virtual bool IsVisible(const Config& a,const Config& b) {
     EdgePlanner* e = PathChecker(a,b);
@@ -230,9 +257,32 @@ public:
 
   const Config *cacheq,*cacheq2;
   PyObject *cachex,*cachex2;
+  AdaptiveCSpace::PredicateStats feasibleStats,visibleStats;
+  double visibleDistance,notVisibleDistance;
 };
 
 
+class PyUpdateEdgePlanner : public PiggybackEdgePlanner
+{
+public:
+  PyCSpace* space;
+  PyUpdateEdgePlanner(PyCSpace* _space,SmartPointer<EdgePlanner> e)
+  :PiggybackEdgePlanner(e),space(_space)
+  {}
+  void UpdateCSpace(double time,bool visible) {
+    UpdateStats(space->visibleStats,time,visible);
+    if(visible) 
+      space->visibleDistance += (Length()-space->visibleDistance)/(space->visibleStats.count*space->visibleStats.probability);
+    else
+      space->notVisibleDistance += (Length()-space->notVisibleDistance)/(space->visibleStats.count*(1.0-space->visibleStats.probability));
+  }
+  virtual bool IsVisible() {
+    Timer timer;
+    bool res = PiggybackEdgePlanner::IsVisible();
+    UpdateCSpace(timer.ElapsedTime(),res);
+    return res;
+  }
+};
 
 class PyEdgePlanner : public EdgePlanner
 {
@@ -246,6 +296,7 @@ public:
     :space(_space),a(_a),b(_b),obstacle(_obstacle)
   {}
   virtual ~PyEdgePlanner() {}
+  
   virtual bool IsVisible() {
     assert(space->visibleTests.size() == space->constraints.size());
     PyObject* pya = space->UpdateTempConfig(a);
@@ -330,31 +381,36 @@ public:
   {
     return space->Interpolate(a,b,u,x);
   }
+
   virtual const Config& Start() const { return a; }
   virtual const Config& End() const { return b; }
   virtual CSpace* Space() const { return space; }
-  virtual EdgePlanner* Copy() const { return new PyEdgePlanner(space,a,b,obstacle); }
-  virtual EdgePlanner* ReverseCopy() const { return new PyEdgePlanner(space,b,a,obstacle); }
+  virtual EdgePlanner* Copy() const {
+    return new PyEdgePlanner(space,a,b,obstacle); 
+  }
+  virtual EdgePlanner* ReverseCopy() const {
+    return new PyEdgePlanner(space,b,a,obstacle);
+  }
 };
 
 
 EdgePlanner* PyCSpace::PathChecker(const Config& a,const Config& b)
 {
   if(visibleTests.empty()) {
-    return new EpsilonEdgeChecker(this,a,b,edgeResolution); 
+    return new PyUpdateEdgePlanner(this,new BisectionEpsilonEdgePlanner(this,a,b,edgeResolution)); 
   }
   else {
-    return new PyEdgePlanner(this,a,b);
+    return new PyUpdateEdgePlanner(this,new PyEdgePlanner(this,a,b));
   }
 }
 
 EdgePlanner* PyCSpace::PathChecker(const Config& a,const Config& b,int obstacle)
 {
   if(visibleTests.empty()) {
-    return MakeSingleConstraintBisectionPlanner(this,a,b,obstacle,edgeResolution); 
+    return new PyUpdateEdgePlanner(this,MakeSingleConstraintBisectionPlanner(this,a,b,obstacle,edgeResolution)); 
   }
   else {
-    return new PyEdgePlanner(this,a,b,obstacle);
+    return new PyUpdateEdgePlanner(this,new PyEdgePlanner(this,a,b,obstacle));
   }
 }
 
@@ -363,8 +419,9 @@ class PyConstraintSet : public CSet
 public:
   PyObject* test,*sampler;
   PyConstraintSet(PyObject* _test,PyObject* _sampler=NULL)
-    :test(test),sampler(_sampler)
+    :test(_test),sampler(_sampler)
   {
+    Assert(test != NULL);
     Py_INCREF(test);
     if(sampler)
       Py_INCREF(sampler);
@@ -532,7 +589,6 @@ void CSpaceInterface::setFeasibility(PyObject* pyFeas)
 {
   if(index < 0 || index >= (int)spaces.size() || spaces[index]==NULL) 
     throw PyException("Invalid cspace index");
-  Py_XINCREF(pyFeas);
   spaces[index]->constraintNames.resize(1);
   spaces[index]->constraintNames[0] = "feasible";
   spaces[index]->constraints.resize(1);
@@ -905,6 +961,30 @@ PyObject* CSpaceInterface::visibilityQueryOrder()
   return res;
 }
 
+PyObject* CSpaceInterface::getStats()
+{
+  if(index < 0 || index >= (int)spaces.size() || spaces[index]==NULL) 
+    throw PyException("Invalid cspace index");
+  PyObject* res = PyDict_New();
+  PropertyMap stats;
+  if(index < (int)adaptiveSpaces.size() && adaptiveSpaces[index]!=NULL) {
+    adaptiveSpaces[index]->GetStats(stats);
+  }
+  stats.set("feasible_count",spaces[index]->feasibleStats.count);
+  stats.set("feasible_probability",spaces[index]->feasibleStats.probability);
+  stats.set("feasible_time",spaces[index]->feasibleStats.cost);
+  stats.set("visible_count",spaces[index]->visibleStats.count);
+  stats.set("visible_probability",spaces[index]->visibleStats.probability);
+  stats.set("visible_time",spaces[index]->visibleStats.cost);
+  stats.set("average_visible_length",spaces[index]->visibleDistance);
+  stats.set("average_notvisible_length",spaces[index]->notVisibleDistance);
+  for(PropertyMap::const_iterator i=stats.begin();i!=stats.end();i++) {
+    PyObject* value = PyString_FromString(i->second.c_str());
+    PyDict_SetItemString(res,i->first.c_str(),value);
+    Py_XDECREF(value);
+  }
+  return res;
+}
 
 
 void setPlanJSONString(const char* string)

@@ -153,6 +153,10 @@ class CSpaceInterface
   ///Retrieves the current order of visibility tests
   PyObject* visibilityQueryOrder();
 
+  ///Returns constraint testing statistics.
+  ///If adaptive queries are enabled, this returns the stats on each constraint
+  PyObject* getStats();
+
   int index;
 };
 
