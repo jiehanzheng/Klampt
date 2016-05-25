@@ -31,7 +31,6 @@ class CustomTimeScaling
   bool Optimize();
 
   RobotCSpace cspace;
-  RobotGeodesicManifold manifold;
 
   ///Output trajectory
   TimeScaledBezierCurve traj;

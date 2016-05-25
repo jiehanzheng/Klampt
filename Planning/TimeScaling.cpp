@@ -2682,7 +2682,7 @@ void TimeScaledBezierCurve::Plot(const char* fn,const Vector& vmin,const Vector&
 
 
 CustomTimeScaling::CustomTimeScaling(Robot& robot)
-  :cspace(robot),manifold(robot)
+  :cspace(robot)
 {
 }
 
@@ -2747,11 +2747,11 @@ void CustomTimeScaling::SetPath(const MultiPath& path,const vector<Real>& paramD
   for(size_t i=0;i<smoothPaths.size();i++) {
     Assert(!path.HasVelocity(i));
     if(path.HasTiming(i)) {
-      SPLINE_INTERPOLATE_FUNC(path.sections[i].milestones,path.sections[i].times,smoothPaths[i],&cspace,&manifold);
+      SPLINE_INTERPOLATE_FUNC(path.sections[i].milestones,path.sections[i].times,smoothPaths[i],&cspace,&cspace);
     }
     else {
-      //MonotonicAccelInterpolate(path.sections[i].milestones,smoothPaths[i],&cspace,&manifold);
-      SPLINE_INTERPOLATE_FUNC(path.sections[i].milestones,smoothPaths[i],&cspace,&manifold);
+      //MonotonicAccelInterpolate(path.sections[i].milestones,smoothPaths[i],&cspace,&cspace);
+      SPLINE_INTERPOLATE_FUNC(path.sections[i].milestones,smoothPaths[i],&cspace,&cspace);
     }
   }
 
