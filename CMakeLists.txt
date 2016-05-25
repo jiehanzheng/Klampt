@@ -102,7 +102,7 @@ ADD_DEPENDENCIES(python Klampt)
 
 # uninstall target
 configure_file(
-    "${CMAKE_MODULE_PATH}/CMakeUninstall.cmake.in"
+    "CMakeModules/CMakeUninstall.cmake.in"
     "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
     IMMEDIATE @ONLY)
 
