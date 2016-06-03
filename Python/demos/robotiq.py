@@ -239,7 +239,7 @@ class FingerEmulator:
             #opening motion after full stop
             self.gstop = None
             res = quasistatic_finger_model(self.gobs,self.g)
-            print "RobotiQ finger model g:",self.g,"gobs",self.gobs,"gstop",self.gstop,"res",res
+            #print "RobotiQ finger model g:",self.g,"gobs",self.gobs,"gstop",self.gstop,"res",res
             return res
         else:
             #closing motion
@@ -255,10 +255,10 @@ class FingerEmulator:
             if do_stop:
                 #print "stopping finger"
                 self.gstop = self.g
-                print "RobotiQ finger model g:",self.g,"gobs",self.gobs,"gstop",self.gstop,"stopped."
+                print "RobotiQ finger model g:",self.g,"gobs",self.gobs,"gstop",self.gstop,"exceeded threshold, stopped."
                 return q
             res = quasistatic_finger_model(self.gobs,self.g)
-            print "RobotiQ finger model g:",self.g,"gobs",self.gobs,"gstop",self.gstop,"res",res
+            #print "RobotiQ finger model g:",self.g,"gobs",self.gobs,"gstop",self.gstop,"res",res
             return res
 
 
