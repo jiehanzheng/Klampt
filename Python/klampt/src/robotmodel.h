@@ -257,7 +257,12 @@ class RobotModel
   ///Computes a distance between two configurations, properly taking into account nonstandard joints
   double distance(const std::vector<double>& a,const std::vector<double>& b);
   ///Returns the configuration derivative at a as you interpolate toward b at unit speed.
-  void interpolate_deriv(const std::vector<double>& a,const std::vector<double>& b,std::vector<double>& out);
+  void interpolateDeriv(const std::vector<double>& a,const std::vector<double>& b,std::vector<double>& out);
+
+  ///Samples a random configuration.  Properly handles non-normal joints and handles 
+  ///DOFs with infinite bounds using a centered Laplacian distribution with the given
+  ///scaling term
+  void randomizeConfig(double unboundedScale=1.0);
 
   //geometry functions
   ///Queries whether self collisions between two links is enabled
