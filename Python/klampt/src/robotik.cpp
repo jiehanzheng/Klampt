@@ -6,6 +6,7 @@
 #include <KrisLibrary/math3d/random.h>
 #include <Python.h>
 #include "Modeling/World.h"
+#include "Planning/RobotCSpace.h"
 #include "pyerr.h"
 
 //defined in robotsim.cpp
@@ -428,8 +429,15 @@ void IKSolver::sampleInitial()
   vector<int> active;
   getActiveDofs(active);
   if(qmin.empty()) {
+    //this method correctly updates non-normal joints and handles infinite bounds
+    Config qorig = robot.robot->q;
+    RobotCSpace space(*robot.robot);
+    space.Sample(robot.robot->q);
+    swap(robot.robot->q,qorig);
     for(size_t i=0;i<active.size();i++)
-      robot.robot->q(active[i]) = Rand(robot.robot->qMin(active[i]),robot.robot->qMax(active[i]));
+      robot.robot->q(active[i]) = qorig(active[i]);
+    //for(size_t i=0;i<active.size();i++)
+    //  robot.robot->q(active[i]) = Rand(robot.robot->qMin(active[i]),robot.robot->qMax(active[i]));
   }
   else {
     for(size_t i=0;i<active.size();i++)
