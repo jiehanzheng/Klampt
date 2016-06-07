@@ -8,6 +8,7 @@
 #include "Control/LoggingController.h"
 #include "Simulation/WorldSimulation.h"
 #include "Modeling/Interpolate.h"
+#include "Planning/RobotCSpace.h"
 #include "IO/XmlWorld.h"
 #include "IO/XmlODE.h"
 #include "IO/ROS.h"
@@ -2380,11 +2381,19 @@ double RobotModel::distance(const std::vector<double>& a,const std::vector<doubl
   return Distance(*robot,va,vb,Inf);
 }
 
-void RobotModel::interpolate_deriv(const std::vector<double>& a,const std::vector<double>& b,std::vector<double>& dout)
+void RobotModel::interpolateDeriv(const std::vector<double>& a,const std::vector<double>& b,std::vector<double>& dout)
 {
   Vector va(a),vb(b),vout;
   InterpolateDerivative(*robot,va,vb,vout);
   dout = vout;
+}
+
+void RobotModel::randomizeConfig(double unboundedStdDeviation)
+{
+  RobotCSpace space(*robot);
+  space.Sample(robot->q);
+  robot->UpdateFrames();
+  robot->UpdateGeometry();
 }
 
 bool RobotModel::selfCollisionEnabled(int link1,int link2)
