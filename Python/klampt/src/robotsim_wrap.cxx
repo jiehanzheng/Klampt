@@ -47520,19 +47520,10 @@ static PyMethodDef SwigMethods[] = {
 		"Computes a distance between two configurations, properly taking into\n"
 		"account nonstandard joints. \n"
 		""},
-	 { (char *)"RobotModel_interpolateDeriv", _wrap_RobotModel_interpolateDeriv, METH_VARARGS, (char *)"\n"
-		"RobotModel_interpolateDeriv(RobotModel self, doubleVector a, doubleVector b)\n"
-		"\n"
-		"Returns the configuration derivative at a as you interpolate toward b\n"
-		"at unit speed. \n"
-		""},
+	 { (char *)"RobotModel_interpolateDeriv", _wrap_RobotModel_interpolateDeriv, METH_VARARGS, (char *)"RobotModel_interpolateDeriv(RobotModel self, doubleVector a, doubleVector b)"},
 	 { (char *)"RobotModel_randomizeConfig", _wrap_RobotModel_randomizeConfig, METH_VARARGS, (char *)"\n"
 		"randomizeConfig(double unboundedScale=1.0)\n"
 		"RobotModel_randomizeConfig(RobotModel self)\n"
-		"\n"
-		"Samples a random configuration. Properly handles non-normal joints and\n"
-		"handles DOFs with infinite bounds using a centered Laplacian\n"
-		"distribution with the given scaling term. \n"
 		""},
 	 { (char *)"RobotModel_selfCollisionEnabled", _wrap_RobotModel_selfCollisionEnabled, METH_VARARGS, (char *)"\n"
 		"RobotModel_selfCollisionEnabled(RobotModel self, int link1, int link2) -> bool\n"
@@ -48503,21 +48494,8 @@ static PyMethodDef SwigMethods[] = {
 		"Sets the internal simulation substep. Values < 0.01 are recommended.\n"
 		"\n"
 		""},
-	 { (char *)"Simulator_getSetting", _wrap_Simulator_getSetting, METH_VARARGS, (char *)"\n"
-		"Simulator_getSetting(Simulator self, std::string const & name) -> std::string\n"
-		"\n"
-		"Retreives some simulation setting. Valid names are gravity, simStep,\n"
-		"boundaryLayerCollisions, rigidObjectCollisions, robotSelfCollisions,\n"
-		"robotRobotCollisions, adaptiveTimeStepping, maxContacts,\n"
-		"clusterNormalScale, errorReductionParameter, and\n"
-		"dampedLeastSquaresParameter. \n"
-		""},
-	 { (char *)"Simulator_setSetting", _wrap_Simulator_setSetting, METH_VARARGS, (char *)"\n"
-		"Simulator_setSetting(Simulator self, std::string const & name, std::string const & value)\n"
-		"\n"
-		"Sets some simulation setting. Raises an exception if the name is\n"
-		"unknown or the value is of improper format. \n"
-		""},
+	 { (char *)"Simulator_getSetting", _wrap_Simulator_getSetting, METH_VARARGS, (char *)"Simulator_getSetting(Simulator self, std::string const & name) -> std::string"},
+	 { (char *)"Simulator_setSetting", _wrap_Simulator_setSetting, METH_VARARGS, (char *)"Simulator_setSetting(Simulator self, std::string const & name, std::string const & value)"},
 	 { (char *)"Simulator_index_set", _wrap_Simulator_index_set, METH_VARARGS, (char *)"Simulator_index_set(Simulator self, int index)"},
 	 { (char *)"Simulator_index_get", _wrap_Simulator_index_get, METH_VARARGS, (char *)"Simulator_index_get(Simulator self) -> int"},
 	 { (char *)"Simulator_world_set", _wrap_Simulator_world_set, METH_VARARGS, (char *)"Simulator_world_set(Simulator self, WorldModel world)"},

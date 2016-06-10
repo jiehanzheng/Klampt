@@ -2169,14 +2169,16 @@ class RobotModel(_object):
         """
         return _robotsim.RobotModel_distance(self, *args)
 
-    def interpolate_deriv(self, *args):
-        """
-        interpolate_deriv(RobotModel self, doubleVector a, doubleVector b)
+    def interpolateDeriv(self, *args):
+        """interpolateDeriv(RobotModel self, doubleVector a, doubleVector b)"""
+        return _robotsim.RobotModel_interpolateDeriv(self, *args)
 
-        Returns the configuration derivative at a as you interpolate toward b
-        at unit speed. 
+    def randomizeConfig(self, unboundedScale=1.0):
         """
-        return _robotsim.RobotModel_interpolate_deriv(self, *args)
+        randomizeConfig(RobotModel self, double unboundedScale=1.0)
+        randomizeConfig(RobotModel self)
+        """
+        return _robotsim.RobotModel_randomizeConfig(self, unboundedScale)
 
     def selfCollisionEnabled(self, *args):
         """

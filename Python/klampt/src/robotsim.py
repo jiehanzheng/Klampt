@@ -2170,22 +2170,13 @@ class RobotModel(_object):
         return _robotsim.RobotModel_distance(self, *args)
 
     def interpolateDeriv(self, *args):
-        """
-        interpolateDeriv(RobotModel self, doubleVector a, doubleVector b)
-
-        Returns the configuration derivative at a as you interpolate toward b
-        at unit speed. 
-        """
+        """interpolateDeriv(RobotModel self, doubleVector a, doubleVector b)"""
         return _robotsim.RobotModel_interpolateDeriv(self, *args)
 
     def randomizeConfig(self, unboundedScale=1.0):
         """
         randomizeConfig(RobotModel self, double unboundedScale=1.0)
         randomizeConfig(RobotModel self)
-
-        Samples a random configuration. Properly handles non-normal joints and
-        handles DOFs with infinite bounds using a centered Laplacian
-        distribution with the given scaling term. 
         """
         return _robotsim.RobotModel_randomizeConfig(self, unboundedScale)
 
@@ -3969,24 +3960,11 @@ class Simulator(_object):
         return _robotsim.Simulator_setSimStep(self, *args)
 
     def getSetting(self, *args):
-        """
-        getSetting(Simulator self, std::string const & name) -> std::string
-
-        Retreives some simulation setting. Valid names are gravity, simStep,
-        boundaryLayerCollisions, rigidObjectCollisions, robotSelfCollisions,
-        robotRobotCollisions, adaptiveTimeStepping, maxContacts,
-        clusterNormalScale, errorReductionParameter, and
-        dampedLeastSquaresParameter. 
-        """
+        """getSetting(Simulator self, std::string const & name) -> std::string"""
         return _robotsim.Simulator_getSetting(self, *args)
 
     def setSetting(self, *args):
-        """
-        setSetting(Simulator self, std::string const & name, std::string const & value)
-
-        Sets some simulation setting. Raises an exception if the name is
-        unknown or the value is of improper format. 
-        """
+        """setSetting(Simulator self, std::string const & name, std::string const & value)"""
         return _robotsim.Simulator_setSetting(self, *args)
 
     __swig_setmethods__["index"] = _robotsim.Simulator_index_set

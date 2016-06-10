@@ -741,6 +741,7 @@ class VisAppearance:
                         oldAppearance = [robot.link(i).appearance().clone() for i in xrange(robot.numLinks())]
                         for i in xrange(robot.numLinks()):
                             robot.link(i).appearance().set(self.customAppearance)
+
                     oldconfig = robot.getConfig()
                     robot.setConfig(item)
                     robot.drawGL()
