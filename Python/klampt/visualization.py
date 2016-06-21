@@ -36,6 +36,8 @@ def add(name,item,keepAppearance=False): adds an item to the visualization.
     it will no longer be shown.  If keepAppearance=True, then the prior item's
     appearance will be kept, if a prior item exists.
 def remove(name): removes an item from the visualization.
+def setItemConfig(name,vector): sets the configuration of a named item.
+def getItemConfig(name): returns the configuration of a named item.
 def hide(name,hidden=True): hides/unhides an item.  The item is not removed,
     it just becomes invisible.
 def hideLabel(name,hidden=True): hides/unhides an item's text label.
@@ -141,14 +143,17 @@ def dirty(item_name='all'):
 
 def show(visible=True):
     global _vis,_globalLock
+    _globalLock.acquire()
     if visible == False:
         _hide()
     else:
         if _vis==None:
             print "Visualization disabled"
+            _globalLock.release()
             return
         else:
             _show()
+    _globalLock.release()
     return
 
 def spin(duration):
@@ -179,7 +184,9 @@ def clear():
     global _vis,_globalLock
     if _vis==None:
         return
+    _globalLock.acquire()
     _vis.items = {}
+    _globalLock.release()
 
 def add(name,item,keepAppearance=False):
     global _vis,_globalLock
@@ -930,8 +937,6 @@ if glcommon._PyQtAvailable or glcommon._GLUTAvailable:
             self.labels.append((point,[text],color))
 
         def display(self):
-            global _globalLock
-            _globalLock.acquire()
             self.labels = []
             world = self.items.get('world',None)
             if world != None: world=world.item
@@ -945,7 +950,6 @@ if glcommon._PyQtAvailable or glcommon._GLUTAvailable:
                 v.widget = None #allows garbage collector to delete these objects
             for (p,textlist,color) in self.labels:
                 self.drawLabelRaw(p,textlist,color)
-            _globalLock.release()
 
         def drawLabelRaw(self,point,textList,color):
             #assert not self.makingDisplayList,"drawText must be called outside of display list"
@@ -973,9 +977,7 @@ if glcommon._PyQtAvailable or glcommon._GLUTAvailable:
             oldt = self.t
             self.t = time.time()
             if self.animate:
-                _globalLock.acquire()
                 self.animationTime += (self.t - oldt)
-                _globalLock.release()
             return False
 
     _vis = VisualizationPlugin()        
@@ -1024,11 +1026,12 @@ if glcommon._PyQtAvailable:
             global _showwindow,_widget
             _showwindow = False
             _widget.setParent(None)
+            print "Closing window"
             self.hide()
 
     def _run_app_thread():
         global _thread_running,_app,_vis,_widget,_window,_quit,_showdialog,_showwindow,_window_title
-        global _custom_run_method,_custom_run_retval
+        global _custom_run_method,_custom_run_retval,_globalLock
         _thread_running = True
         #Do Qt setup
         _app = QApplication([_window_title])
@@ -1040,9 +1043,12 @@ if glcommon._PyQtAvailable:
         #res = _app.exec_()
         res = None
         while not _quit:
+            _globalLock.acquire()
             if _window:
                 if _showwindow:
-                    _window.show()
+                    if not _window.isVisible():
+                        print "Show window, window is not None"
+                        _window.show()
                 else:
                     _widget.setParent(None)
                     _window.hide()
@@ -1050,12 +1056,15 @@ if glcommon._PyQtAvailable:
                     _window = None
             else:
                 if _showwindow:
+                    print "Creating window"
                     _window=_MyWindow()
             
             if _showdialog:
                 _window = None
                 _dialog=_MyDialog()
+                _globalLock.release()
                 res = _dialog.exec_()
+                _globalLock.acquire()
                 _showdialog = False
                 _widget.setParent(None)
 
@@ -1065,6 +1074,7 @@ if glcommon._PyQtAvailable:
                 _custom_run_method = None
 
             _app.processEvents()
+            _globalLock.release()
             time.sleep(0.001)
         print "Visualization thread closing..."
         for (name,itemvis) in _vis.items.iteritems():
@@ -1142,7 +1152,14 @@ elif glcommon._GLUTAvailable:
             self.inDialog = False
         def initialize(self):
             GLPluginProgram.initialize(self)
+        def display(self):
+            global _globalLock
+            _globalLock.acquire()
+            GLPluginProgram.display(self)
+            _globalLock.release()
         def display_screen(self):
+            global _globalLock
+            _globalLock.acquire()
             GLPluginProgram.display_screen(self)
             glColor3f(1,1,1)
             glRasterPos(20,50)
@@ -1151,20 +1168,24 @@ elif glcommon._GLUTAvailable:
                 glColor3f(1,1,0)
                 glRasterPos(20,80)
                 gldraw.glutBitmapString(GLUT_BITMAP_HELVETICA_18,"In Dialog mode. Press 'q' to return to normal mode")
+            _globalLock.release()
         def keyboardfunc(self,c,x,y):
             if self.inDialog and c=='q':
                 print "Q pressed, hiding dialog"
                 self.inDialog = False
-                global _showwindow,_showdialog
+                global _showwindow,_showdialog,_globalLock
+                _globalLock.acquire()
                 _showdialog = False
                 if not _showwindow:
                     glutIconifyWindow()
+                _globalLock.release()
             else:
                 GLPluginProgram.keyboardfunc(self,c,x,y)
 
         def idlefunc(self):
             global _thread_running,_app,_vis,_quit,_showdialog,_showwindow,_old_glut_window
-            global _custom_run_method,_custom_run_retval
+            global _custom_run_method,_custom_run_retval,_globalLock
+            _globalLock.acquire()
             if _quit:
                 if bool(glutLeaveMainLoop):
                     glutLeaveMainLoop()
@@ -1186,6 +1207,7 @@ elif glcommon._GLUTAvailable:
 
                 if _custom_run_method:
                     pass
+            _globalLock.release()
             GLPluginProgram.idlefunc(self)
 
 
