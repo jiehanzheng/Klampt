@@ -261,7 +261,7 @@ class RobotModel
 
   ///Samples a random configuration.  Properly handles non-normal joints and handles 
   ///DOFs with infinite bounds using a centered Laplacian distribution with the given
-  ///scaling term
+  ///scaling term.  Note that the python random seeding does not affect this.
   void randomizeConfig(double unboundedScale=1.0);
 
   //geometry functions
