@@ -2806,7 +2806,7 @@ void TimeScaledBezierCurve::Plot(const char* fn,const Vector& vmin,const Vector&
 
 
 CustomTimeScaling::CustomTimeScaling(Robot& robot)
-  :cspace(robot),manifold(robot),saveConstraintNames(false),computeLagrangeMultipliers(false)
+  :cspace(robot),saveConstraintNames(false),computeLagrangeMultipliers(false)
 {
 }
 
