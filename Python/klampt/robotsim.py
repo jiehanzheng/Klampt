@@ -1395,6 +1395,10 @@ class RobotPoser(Widget):
         this = _robotsim.new_RobotPoser(*args)
         try: self.this.append(this)
         except: self.this = this
+    def setActiveDofs(self, *args):
+        """setActiveDofs(RobotPoser self, intVector dofs)"""
+        return _robotsim.RobotPoser_setActiveDofs(self, *args)
+
     def set(self, *args):
         """set(RobotPoser self, doubleVector q)"""
         return _robotsim.RobotPoser_set(self, *args)
@@ -2172,6 +2176,13 @@ class RobotModel(_object):
     def interpolateDeriv(self, *args):
         """interpolateDeriv(RobotModel self, doubleVector a, doubleVector b)"""
         return _robotsim.RobotModel_interpolateDeriv(self, *args)
+
+    def randomizeConfig(self, unboundedScale=1.0):
+        """
+        randomizeConfig(RobotModel self, double unboundedScale=1.0)
+        randomizeConfig(RobotModel self)
+        """
+        return _robotsim.RobotModel_randomizeConfig(self, unboundedScale)
 
     def randomizeConfig(self, unboundedScale=1.0):
         """
@@ -3608,6 +3619,13 @@ class SimBody(_object):
     def getCollisionPadding(self):
         """getCollisionPadding(SimBody self) -> double"""
         return _robotsim.SimBody_getCollisionPadding(self)
+
+    def setCollisionPreshrink(self, shrinkVisualization=False):
+        """
+        setCollisionPreshrink(SimBody self, bool shrinkVisualization=False)
+        setCollisionPreshrink(SimBody self)
+        """
+        return _robotsim.SimBody_setCollisionPreshrink(self, shrinkVisualization)
 
     def getSurface(self):
         """

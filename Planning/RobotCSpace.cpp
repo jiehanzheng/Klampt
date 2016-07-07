@@ -14,6 +14,27 @@
 #include <boost/functional.hpp>
 #include <sstream>
 
+Real RandLaplacian()
+{
+  Real v = Rand();
+  if(v==0) v = Epsilon;
+  return -Log(v);
+}
+
+Real RandTwoSidedLaplacian()
+{
+  if(RandBool(0.5)) return RandLaplacian();
+  else return -RandLaplacian();
+}
+
+Real SafeRand(Real a,Real b)
+{
+  if(IsInf(a) && IsInf(b)) return RandTwoSidedLaplacian();
+  else if(IsInf(a)) return b-RandLaplacian();
+  else if(IsInf(b)) return a+RandLaplacian();
+  else return Rand(a,b);
+}
+
 RobotCSpace::RobotCSpace(Robot& _robot)
   :robot(_robot),norm(2.0)
 {
@@ -57,14 +78,28 @@ void RobotCSpace::Sample(Config& q)
     case RobotJoint::Spin:
       robot.q(link) = Rand(0,TwoPi);
       break;
+    case RobotJoint::FloatingPlanar:
+      {
+      int p = robot.parents[link];
+      assert(p>=0);
+      int pp = robot.parents[p];
+      assert(pp>=0);
+      robot.q(link) = Rand(0,TwoPi);
+      robot.q(p) = SafeRand(robot.qMin(p),robot.qMax(p));
+      robot.q(pp) = SafeRand(robot.qMin(pp),robot.qMax(pp));
+      break;
+      }
     case RobotJoint::Floating:
     case RobotJoint::BallAndSocket:
       {
-	Matrix3 R;
+	RigidTransform T;
+  T.t.x = RandTwoSidedLaplacian();
+  T.t.y = RandTwoSidedLaplacian();
+  T.t.z = RandTwoSidedLaplacian();
 	QuaternionRotation qr;
 	RandRotation(qr);
-	qr.getMatrix(R);
-	robot.SetJointByOrientation(i,robot.joints[i].linkIndex,R);
+	qr.getMatrix(T.R);
+	robot.SetJointByTransform(i,robot.joints[i].linkIndex,T);
       }
       break;
     default:

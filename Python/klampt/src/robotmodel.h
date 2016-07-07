@@ -259,9 +259,10 @@ class RobotModel
   ///Returns the configuration derivative at a as you interpolate toward b at unit speed.
   void interpolateDeriv(const std::vector<double>& a,const std::vector<double>& b,std::vector<double>& out);
 
-  ///Samples a random configuration.  Properly handles non-normal joints and handles 
-  ///DOFs with infinite bounds using a centered Laplacian distribution with the given
-  ///scaling term.  Note that the python random seeding does not affect this.
+  ///Samples a random configuration and updates the robot's pose.  Properly
+  ///handles non-normal joints and handles DOFs with infinite bounds
+  ///using a centered Laplacian distribution with the given scaling term.
+  ///(Note that the python random seeding does not affect the result.)
   void randomizeConfig(double unboundedScale=1.0);
 
   //geometry functions

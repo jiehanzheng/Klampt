@@ -6,6 +6,7 @@
 #include "Control/PathController.h"
 #include "Control/FeedforwardController.h"
 #include "Control/LoggingController.h"
+#include "Planning/RobotCSpace.h"
 #include "Simulation/WorldSimulation.h"
 #include "Modeling/Interpolate.h"
 #include "Planning/RobotCSpace.h"
@@ -1039,11 +1040,30 @@ void Appearance::setColor(int primitive,float r,float g,float b,float a)
 
 void Appearance::getColor(float out[4])
 {
-  FatalError("Not implemented yet");
+  SmartPointer<GLDraw::GeometryAppearance>& app = *reinterpret_cast<SmartPointer<GLDraw::GeometryAppearance>*>(appearancePtr);
+  if(!app) throw PyException("Invalid appearance");
+  for(int i=0;i<4;i++) out[i] = app->faceColor.rgba[i];
 }
 void Appearance::getColor(int primitive,float out[4])
 {
-  FatalError("Not implemented yet");
+  SmartPointer<GLDraw::GeometryAppearance>& app = *reinterpret_cast<SmartPointer<GLDraw::GeometryAppearance>*>(appearancePtr);
+  if(!app) throw PyException("Invalid appearance");
+  GLDraw::GLColor c;
+  switch(primitive) {
+  case ALL:
+  case FACES:
+    c = app->faceColor;
+    break;
+  case VERTICES:
+    c = app->vertexColor;
+    break;
+  case EDGES:
+    c = app->edgeColor;
+    break;
+  default:
+    throw PyException("Invalid primitive");
+  }
+  for(int i=0;i<4;i++) out[i] = c.rgba[i];
 }
 void Appearance::setColors(int primitive,const std::vector<float>& colors,bool alpha)
 {
@@ -2388,14 +2408,6 @@ void RobotModel::interpolateDeriv(const std::vector<double>& a,const std::vector
   dout = vout;
 }
 
-void RobotModel::randomizeConfig(double unboundedStdDeviation)
-{
-  RobotCSpace space(*robot);
-  space.Sample(robot->q);
-  robot->UpdateFrames();
-  robot->UpdateGeometry();
-}
-
 bool RobotModel::selfCollisionEnabled(int link1,int link2)
 {
   if (link1 > link2) swap(link1,link2);
@@ -2424,6 +2436,26 @@ bool RobotModel::selfCollides()
   return false;
   */
   return robot->SelfCollision();
+}
+
+void RobotModel::randomizeConfig(double unboundedStdDeviation)
+{
+  RobotCSpace space(*robot);
+  space.Sample(robot->q);
+  for(size_t i=0;i<robot->joints.size();i++)
+    if(robot->joints[i].type == RobotJoint::Floating) {
+      int base = robot->joints[i].baseIndex;
+      robot->q[base] *= unboundedStdDeviation;
+      robot->q[base+1] *= unboundedStdDeviation;
+      robot->q[base+2] *= unboundedStdDeviation;
+    }
+    else if(robot->joints[i].type == RobotJoint::FloatingPlanar) {
+      int base = robot->joints[i].baseIndex;
+      robot->q[base] *= unboundedStdDeviation;
+      robot->q[base+1] *= unboundedStdDeviation;
+    }
+  robot->UpdateFrames();
+  robot->UpdateGeometry();
 }
 
 void RobotModel::drawGL(bool keepAppearance)
@@ -2561,7 +2593,6 @@ Appearance RigidObjectModel::appearance()
   res.id = getID();
   assert(res.id >= 0);
   *reinterpret_cast<SmartPointer<GLDraw::GeometryAppearance>*>(res.appearancePtr) = worlds[world]->world->GetAppearance(res.id);
-  //printf("Copying ptr to rigid object appearance to %p\n",&res);
   return res;
 }
 
@@ -2685,7 +2716,6 @@ Appearance TerrainModel::appearance()
   res.id = getID();
   assert(res.id >= 0);
   *reinterpret_cast<SmartPointer<GLDraw::GeometryAppearance>*>(res.appearancePtr) = worlds[world]->world->GetAppearance(res.id);
-  //printf("Copying ptr to terrain appearance to %p\n",&res);
   return res;
 }
 
@@ -3162,6 +3192,12 @@ double SimBody::getCollisionPadding()
 {
   if(!geometry) return 0;
   return geometry->GetPadding();
+}
+
+void SimBody::setCollisionPreshrink(bool shrinkVisualization)
+{
+  if(!geometry) return;
+  geometry->SetPaddingWithPreshrink(geometry->GetPadding(),shrinkVisualization);
 }
 
 ContactParameters SimBody::getSurface()
@@ -3914,6 +3950,12 @@ RobotPoser::RobotPoser(RobotModel& robot)
   Assert(rob != NULL);
   Assert(view != NULL);
   widgets[index].widget = new RobotPoseWidget(rob,view);
+}
+
+void RobotPoser::setActiveDofs(const std::vector<int>& dofs)
+{
+  RobotPoseWidget* tw=dynamic_cast<RobotPoseWidget*>(&*widgets[index].widget);
+  tw->SetActiveDofs(dofs);
 }
 
 void RobotPoser::set(const std::vector<double>& q)
